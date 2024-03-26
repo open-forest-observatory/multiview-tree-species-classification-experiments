@@ -1,0 +1,6 @@
+outs:
+- md5: 09d89111df7d3fe0e59e58d5cb047c0a.dir
+  size: 133075048943
+  nfiles: 19667
+  hash: md5
+  path: DeltaB_120m

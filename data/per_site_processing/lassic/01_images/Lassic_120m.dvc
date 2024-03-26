@@ -1,0 +1,6 @@
+outs:
+- md5: 75808a816030e9aec9bb3d5fe757c1cd.dir
+  size: 78412229804
+  nfiles: 9270
+  hash: md5
+  path: Lassic_120m

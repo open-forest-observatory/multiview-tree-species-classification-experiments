@@ -1,0 +1,6 @@
+outs:
+- md5: c9492c104e45f1ee65fe1390321249b1.dir
+  size: 112515115040
+  nfiles: 13180
+  hash: md5
+  path: ChipsB_120m

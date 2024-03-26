@@ -1,0 +1,6 @@
+outs:
+- md5: 937ee6312e4663dd95dc2e3066a0a961.dir
+  size: 101069573981
+  nfiles: 11952
+  hash: md5
+  path: ChipsB_80m_2021_complete

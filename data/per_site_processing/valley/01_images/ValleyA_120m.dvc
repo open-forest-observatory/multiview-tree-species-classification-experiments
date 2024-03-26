@@ -1,0 +1,6 @@
+outs:
+- md5: b8ba1d50918a92e575203295efee0675.dir
+  size: 81833780200
+  nfiles: 9469
+  hash: md5
+  path: ValleyA_120m

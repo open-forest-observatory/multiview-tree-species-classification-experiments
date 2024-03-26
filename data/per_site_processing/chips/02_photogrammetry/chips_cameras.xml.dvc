@@ -1,0 +1,5 @@
+outs:
+- md5: 7ebe7dfe0943fb751ac1173d40d67020
+  size: 24312535
+  hash: md5
+  path: chips_cameras.xml

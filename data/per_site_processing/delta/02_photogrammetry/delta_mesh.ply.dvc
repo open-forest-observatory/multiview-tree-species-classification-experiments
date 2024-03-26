@@ -1,0 +1,5 @@
+outs:
+- md5: 78c2b056ae185ff21efb6b46ba9f09a3
+  size: 710839371
+  hash: md5
+  path: delta_mesh.ply

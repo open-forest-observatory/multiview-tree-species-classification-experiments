@@ -1,0 +1,5 @@
+outs:
+- md5: 40683a779824b8159774e7d9505d8162
+  size: 350518072
+  hash: md5
+  path: valley_mesh.ply

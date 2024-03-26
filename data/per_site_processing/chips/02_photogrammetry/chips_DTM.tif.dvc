@@ -1,0 +1,5 @@
+outs:
+- md5: 90f424cf4d68cec2d9a5d52065456b91
+  size: 611442218
+  hash: md5
+  path: chips_DTM.tif

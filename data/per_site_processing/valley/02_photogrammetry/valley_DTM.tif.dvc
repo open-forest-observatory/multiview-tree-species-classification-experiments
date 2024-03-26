@@ -1,0 +1,5 @@
+outs:
+- md5: c03fec6f4323c0fc3cae8b46a5fd1bc0
+  size: 103809024
+  hash: md5
+  path: valley_DTM.tif

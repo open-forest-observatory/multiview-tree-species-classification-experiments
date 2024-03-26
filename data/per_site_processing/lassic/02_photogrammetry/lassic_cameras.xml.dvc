@@ -1,0 +1,5 @@
+outs:
+- md5: 41c0b1746be4de4f68e4715294f4e94c
+  size: 18775253
+  hash: md5
+  path: lassic_cameras.xml

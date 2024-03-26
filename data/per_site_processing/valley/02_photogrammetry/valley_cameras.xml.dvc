@@ -1,0 +1,5 @@
+outs:
+- md5: ce72fbcb43a7dbb9f522fa715a6128ed
+  size: 17505417
+  hash: md5
+  path: valley_cameras.xml

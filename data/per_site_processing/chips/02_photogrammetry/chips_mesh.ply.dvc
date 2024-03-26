@@ -1,0 +1,5 @@
+outs:
+- md5: 5ba84687086c5df4c68415e0a80923c9
+  size: 648828708
+  hash: md5
+  path: chips_mesh.ply

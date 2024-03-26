@@ -1,0 +1,5 @@
+outs:
+- md5: db30ad631a0af87142f294081fa00835
+  size: 19205733147
+  hash: md5
+  path: delta_ortho.tif

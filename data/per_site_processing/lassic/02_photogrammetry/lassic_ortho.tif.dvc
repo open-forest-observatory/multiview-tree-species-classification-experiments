@@ -1,0 +1,5 @@
+outs:
+- md5: 1beeb2ff7b290e4ad9f75d6e25378998
+  size: 9708423779
+  hash: md5
+  path: lassic_ortho.tif

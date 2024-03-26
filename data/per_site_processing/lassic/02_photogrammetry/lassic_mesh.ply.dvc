@@ -1,0 +1,5 @@
+outs:
+- md5: ba1fe652df32bdeaa49ba9d021c06dfc
+  size: 678526275
+  hash: md5
+  path: lassic_mesh.ply

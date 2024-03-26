@@ -1,0 +1,5 @@
+outs:
+- md5: 07da7eeadf6b84dd0c0a39e730aadf75
+  size: 32902884
+  hash: md5
+  path: delta_cameras.xml

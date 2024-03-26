@@ -1,0 +1,5 @@
+outs:
+- md5: 1bbc8cc1f78302e7714de910207ff314
+  size: 11746703589
+  hash: md5
+  path: valley_ortho.tif

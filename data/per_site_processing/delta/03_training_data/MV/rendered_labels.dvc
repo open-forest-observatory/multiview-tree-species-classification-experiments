@@ -1,0 +1,6 @@
+outs:
+- md5: 8b55abacd194d1b2e22412843ed8bd80.dir
+  size: 66905502
+  nfiles: 1154
+  hash: md5
+  path: rendered_labels

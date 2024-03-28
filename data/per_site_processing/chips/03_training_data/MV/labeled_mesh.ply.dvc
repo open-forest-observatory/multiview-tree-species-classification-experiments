@@ -1,0 +1,5 @@
+outs:
+- md5: 96c29b54721180d1fb33232bcab2a35e
+  size: 27515952
+  hash: md5
+  path: labeled_mesh.ply

@@ -1,0 +1,6 @@
+outs:
+- md5: 692af4940a9f78e4552fc36cecd846c3.dir
+  size: 16991412
+  nfiles: 142
+  hash: md5
+  path: run_01

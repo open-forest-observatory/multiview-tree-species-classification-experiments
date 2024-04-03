@@ -1,0 +1,6 @@
+outs:
+- md5: 5d3eed27d394684a915ee576c0dbdbc5.dir
+  size: 1254523
+  nfiles: 28
+  hash: md5
+  path: anns

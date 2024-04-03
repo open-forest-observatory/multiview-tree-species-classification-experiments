@@ -1,0 +1,6 @@
+outs:
+- md5: 8724f754ecd1747bf5625d6653677b39.dir
+  size: 378197
+  nfiles: 11
+  hash: md5
+  path: anns

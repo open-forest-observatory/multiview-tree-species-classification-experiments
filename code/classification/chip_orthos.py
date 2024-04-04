@@ -29,6 +29,7 @@ for training_site in ALL_SITE_NAMES:
     training_chips_folder = get_training_chips_folder(training_site=training_site)
     labels_vis_folder = get_labels_vis_folder(training_site, mission_type="ortho")
 
+    # create the paired ortho chips and associated labels
     write_chips(
         raster_file=training_raster_filename,
         output_folder=training_chips_folder,
@@ -40,7 +41,7 @@ for training_site in ALL_SITE_NAMES:
         output_suffix=TRAINING_IMGS_EXT,
         ROI_file=LABELS_FILENAME,
     )
-
+    # Visualize this training data
     show_segmentation_labels(
         label_folder=Path(training_chips_folder, "anns"),
         image_folder=Path(training_chips_folder, "imgs"),

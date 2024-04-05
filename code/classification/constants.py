@@ -326,6 +326,20 @@ def get_figure_export_confusion_matrix_file(
     )
 
 
+def get_npy_export_confusion_matrix_file(
+    prediction_site, training_sites, mission_type, run_ID
+):
+    predicted_output_base_file = get_predicted_output_base_file(
+        prediction_site, training_sites
+    )
+
+    return Path(
+        predicted_output_base_file,
+        f"cf_matrix_{mission_type}",
+        f"run_{run_ID}.npy",
+    )
+
+
 def get_predicted_vector_labels_filename(prediction_site, training_sites):
     return get_predicted_output_base_file(
         prediction_site=prediction_site, training_sites=training_sites

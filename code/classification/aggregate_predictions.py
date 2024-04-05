@@ -12,6 +12,7 @@ from constants import (
     get_mesh_transform_filename,
     get_predicted_labeled_polygons_file,
     get_prediction_folder,
+    get_npy_export_confusion_matrix_file,
     get_subfolder_by_mission_type,
 )
 from geograypher.constants import PRED_CLASS_ID_KEY
@@ -19,11 +20,13 @@ from geograypher.entrypoints import aggregate_images, label_polygons
 from geograypher.utils.prediction_metrics import compute_and_show_cf
 
 SITE_NAMES = ["valley", "chips", "delta", "lassic"]
+AGGREGATE = False
+LABEL_POLYGONS = True
 
 IDs_to_labels = get_IDs_to_labels()
 
-for mission_type in ("MV-HN",):
-    for site_name in ["lassic", "chips", "delta"]:
+for site_name in ["valley", "lassic", "chips", "delta"]:
+    for mission_type in ("MV-HN", "MV-LO"):
         for run_ID in ("00", "01", "02"):
             image_folder = get_image_folder(site_name)
             mesh_file = get_mesh_filename(site_name)
@@ -61,37 +64,45 @@ for mission_type in ("MV-HN",):
                     run_ID=run_ID,
                 )
             )
-
-            aggregate_images(
-                mesh_file=mesh_file,
-                cameras_file=cameras_file,
-                label_folder=prediction_folder,
-                image_folder=image_folder,
-                subset_images_folder=subset_images_folder,
-                mesh_transform_file=mesh_transform_file,
-                DTM_file=DTM_file,
-                ROI=LABELS_FILENAME,
-                IDs_to_labels=IDs_to_labels,
-                aggregated_face_values_savefile=aggregated_face_values_file,
+            npy_export_confusion_matrix_file = get_npy_export_confusion_matrix_file(
+                site_name,
+                training_sites=training_sites,
+                mission_type=mission_type,
+                run_ID=run_ID,
             )
 
-            # label_polygons(
-            #    mesh_file=mesh_file,
-            #    mesh_transform_file=mesh_transform_file,
-            #    aggregated_face_values_file=aggregated_face_values_file,
-            #    DTM_file=DTM_file,
-            #    ROI=LABELS_FILENAME,
-            #    IDs_to_labels=IDs_to_labels,
-            #    geospatial_polygons_to_label=LABELS_FILENAME,
-            #    geospatial_polygons_labeled_savefile=predicted_labeled_polygons_file,
-            # )
-            # pred_polygons = gpd.read_file(predicted_labeled_polygons_file)
-            # pred_polygons = pred_polygons.query("fire==@site_name")
-            # pred_labels = pred_polygons[PRED_CLASS_ID_KEY].tolist()
-            # gt_labels = pred_polygons[LABELS_COLUMN].tolist()
-            # compute_and_show_cf(
-            #    pred_labels=pred_labels,
-            #    gt_labels=gt_labels,
-            #    labels=list(IDs_to_labels.values()),
-            #    savefile=figure_export_confusion_matrix_file,
-            # )
+            if AGGREGATE:
+                aggregate_images(
+                    mesh_file=mesh_file,
+                    cameras_file=cameras_file,
+                    label_folder=prediction_folder,
+                    image_folder=image_folder,
+                    subset_images_folder=subset_images_folder,
+                    mesh_transform_file=mesh_transform_file,
+                    DTM_file=DTM_file,
+                    ROI=LABELS_FILENAME,
+                    IDs_to_labels=IDs_to_labels,
+                    aggregated_face_values_savefile=aggregated_face_values_file,
+                )
+            if LABEL_POLYGONS:
+                label_polygons(
+                    mesh_file=mesh_file,
+                    mesh_transform_file=mesh_transform_file,
+                    aggregated_face_values_file=aggregated_face_values_file,
+                    DTM_file=DTM_file,
+                    ROI=LABELS_FILENAME,
+                    IDs_to_labels=IDs_to_labels,
+                    geospatial_polygons_to_label=LABELS_FILENAME,
+                    geospatial_polygons_labeled_savefile=predicted_labeled_polygons_file,
+                )
+                pred_polygons = gpd.read_file(predicted_labeled_polygons_file)
+                pred_polygons = pred_polygons.query("fire==@site_name")
+                pred_labels = pred_polygons[PRED_CLASS_ID_KEY].tolist()
+                gt_labels = pred_polygons[LABELS_COLUMN].tolist()
+                compute_and_show_cf(
+                    pred_labels=pred_labels,
+                    gt_labels=gt_labels,
+                    labels=list(IDs_to_labels.values()),
+                    cf_plot_savefile=figure_export_confusion_matrix_file,
+                    cf_np_savefile=npy_export_confusion_matrix_file,
+                )

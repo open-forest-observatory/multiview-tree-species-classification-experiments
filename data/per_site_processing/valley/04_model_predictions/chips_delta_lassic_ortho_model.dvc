@@ -1,0 +1,6 @@
+outs:
+- md5: 0976be47a62feadab6d39774825be17d.dir
+  size: 5266694
+  nfiles: 33
+  hash: md5
+  path: chips_delta_lassic_ortho_model

@@ -1,0 +1,6 @@
+outs:
+- md5: 0eef028a4251dc2ceec6be112c0cdb23.dir
+  size: 15086800
+  nfiles: 84
+  hash: md5
+  path: delta_lassic_valley_ortho_model

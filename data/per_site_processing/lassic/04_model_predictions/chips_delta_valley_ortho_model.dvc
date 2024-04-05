@@ -1,0 +1,6 @@
+outs:
+- md5: 6afa006bb7550e0849fbb21180950586.dir
+  size: 13196448
+  nfiles: 72
+  hash: md5
+  path: chips_delta_valley_ortho_model

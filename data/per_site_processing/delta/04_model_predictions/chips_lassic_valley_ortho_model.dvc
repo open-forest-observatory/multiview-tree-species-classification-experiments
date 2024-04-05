@@ -1,0 +1,6 @@
+outs:
+- md5: 8c417d92df300a9416738e05bc844a4d.dir
+  size: 20195875
+  nfiles: 129
+  hash: md5
+  path: chips_lassic_valley_ortho_model

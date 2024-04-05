@@ -1,0 +1,6 @@
+outs:
+- md5: 4788c371a145050a859d27a66c6668fa.dir
+  size: 3374408421
+  nfiles: 3
+  hash: md5
+  path: chips_lassic_valley_model_ortho_aggregated_raster

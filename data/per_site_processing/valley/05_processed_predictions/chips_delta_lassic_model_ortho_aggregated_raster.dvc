@@ -1,0 +1,6 @@
+outs:
+- md5: 5272fcf2e934d6a61236fc6efbc185d9.dir
+  size: 199751013
+  nfiles: 3
+  hash: md5
+  path: chips_delta_lassic_model_ortho_aggregated_raster

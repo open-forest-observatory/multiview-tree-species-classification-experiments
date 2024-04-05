@@ -1,0 +1,6 @@
+outs:
+- md5: e28f3c9567c3eaaf5fcfb2defe18a8e0.dir
+  size: 599020965
+  nfiles: 3
+  hash: md5
+  path: chips_delta_valley_model_ortho_aggregated_raster

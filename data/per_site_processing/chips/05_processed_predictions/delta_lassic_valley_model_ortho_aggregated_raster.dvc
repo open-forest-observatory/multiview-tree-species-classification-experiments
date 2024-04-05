@@ -1,0 +1,6 @@
+outs:
+- md5: 0eac4bd439854c8ac3335fdbe92d2aa4.dir
+  size: 479348310
+  nfiles: 3
+  hash: md5
+  path: delta_lassic_valley_model_ortho_aggregated_raster

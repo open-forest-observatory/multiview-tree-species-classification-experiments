@@ -1,0 +1,6 @@
+outs:
+- md5: 243093fba796c81c0f038b9121a8db7a.dir
+  size: 111315504
+  nfiles: 3
+  hash: md5
+  path: aggregated_face_values_MV-HN

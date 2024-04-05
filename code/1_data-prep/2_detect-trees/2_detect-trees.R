@@ -1,0 +1,90 @@
+## Takes a CHM and makes a map of treetops
+
+library(sf)
+library(terra)
+library(here)
+library(tidyverse)
+library(lidR)
+
+### Setup ####
+
+data_dir = readLines(here("data_dir.txt"), n=1)
+
+#### Processing ####
+
+sites = c("lassic", "valley", "chips", "delta")
+
+for (site in sites) {
+  
+  ## Layers to process
+
+  focal_area_file = paste0("1_field-data/field-site-boundaries/", site, ".gpkg")
+  chm_file = paste0("out_chms/", site, ".tif")
+  treetop_out_file = paste0("out_ttops/", site, ".gpkg")
+  
+  focal_area = st_read(file.path(data_dir, focal_area_file))
+  focal_area_inner = st_buffer(focal_area, -10) # to remove the edge trees
+  
+  # find the chm file
+  chm = rast(file.path(data_dir, chm_file))
+  
+  # crop and mask it
+  chm_crop = crop(chm,focal_area %>% st_transform(terra::crs(chm)))
+  chm_mask = mask(chm_crop,focal_area %>% st_transform(terra::crs(chm)))
+  chm = chm_mask
+  
+  cat("Fix extraneous vals")
+  chm[chm < 0] = -0.1
+  
+  chm_res = res(chm) %>% mean
+  
+  #resample coarser
+  chm_coarse = project(chm, y = "epsg:3310", res = 0.25)
+  
+  # apply smooth
+  smooth_size = 7
+  weights = matrix(1,nrow=smooth_size,ncol=smooth_size)
+  chm_smooth = focal(chm_coarse, weights, fun=mean)
+  
+  
+  cat("Detecting trees\n")
+  
+  lin <- function(x){
+    win = x*0.11 + 0
+    win[win < 0.5] = 0.5
+    win[win > 100] = 100
+    return(win)
+  } # window filter function to use in next step
+  
+  writeRaster(chm_smooth, file.path(data_dir, "temp/chm.tif"), overwrite = TRUE)
+  
+  # Need to get the full raster loaded into memory before the locate_trees step
+  chm_smooth = raster::raster(file.path(data_dir, "temp/chm.tif"))
+  chm_smooth = chm_smooth * 1
+  
+  treetops <- locate_trees(chm_smooth, lmf(ws = lin, shape = "circular", hmin = 5))
+  gc()
+  
+  treetops = as(treetops, "sf")
+  
+  treetops = treetops |>
+    rename(coarse_smoothed_chm_height = Z)
+  
+  # crop to the inner buffer
+  treetops = st_intersection(treetops,focal_area_inner %>% st_transform(st_crs(treetops)))
+  
+  # pull the height from the highres unsmoothed CHM
+  height = terra::extract(chm, treetops)[,2]
+  treetops$highres_chm_height = height
+  
+  # pull the height from the coarse unsmoothed CHM
+  height = terra::extract(chm_coarse, treetops)[,2]
+  treetops$coarse_unsmoothed_chm_height = height
+  
+  
+  # get the overall height as the max of the three
+  treetops$Z = pmax(treetops$coarse_unsmoothed_chm_height, treetops$coarse_smoothed_chm_height, treetops$highres_chm_height)
+  
+  ## Save treetops
+  st_write(treetops,file.path(data_dir, treetop_out_file), delete_dsn = TRUE, quiet = TRUE)
+}

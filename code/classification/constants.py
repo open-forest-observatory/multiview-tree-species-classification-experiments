@@ -1,8 +1,11 @@
 from pathlib import Path
+import os
 
 # Important folders
 # TODO make this work for notebooks as well if needed
-DATA_ROOT = Path(__file__, "..", "..", "..", "data").resolve()
+PROJECT_ROOT = Path(__file__, "..", "..", "..").resolve()
+DATA_ROOT = Path(PROJECT_ROOT, "data")
+VIS_ROOT = Path(PROJECT_ROOT, "vis")
 # SCRATCH_ROOT = Path(Path.home(), "scratch", "organized_str_disp_MVMT_experiments")
 
 # Ground truth information
@@ -11,6 +14,8 @@ LABELS_FILENAME = Path(DATA_ROOT, "field_ref", "crown_labels.gpkg")
 #    "/ofo-share/scratch-derek/organized-str-disp-MVMT-experiments/field_ref/crowns_drone_w_field_data_updated_nosnags.gpkg"
 # )
 LABELS_COLUMN = "species_observed"
+
+ALL_SITE_NAMES = ["chips", "delta", "lassic", "valley"]
 
 # Conversion between short and long names
 LONG_SITE_NAME_DICT = {
@@ -34,6 +39,7 @@ TRAINING_IMGS_EXT = ".png"
 INFERENCE_IMGS_EXT = ".png"
 CHIP_SIZE = 3648
 BATCH_SIZE = 2
+TRAINING_STRIDE = int(CHIP_SIZE / 2)
 INFERENCE_STRIDE = int(CHIP_SIZE / 2)
 
 # Points less than this height (meters) above the DTM are considered ground
@@ -64,13 +70,16 @@ def get_IDs_to_labels(with_ground=False):
     return IDs_to_labels
 
 
-def get_image_folder(site_name):
-    return Path(
+def get_image_folder(site_name, mission_type=None):
+    image_folder = Path(
         DATA_ROOT,
         "per_site_processing",
         site_name,
         "01_images",
     )
+    if mission_type is None:
+        return image_folder
+    return get_subfolder_by_mission_type(image_folder, mission_type=mission_type)
 
 
 def get_mesh_filename(site_name):
@@ -95,15 +104,7 @@ def get_cameras_filename(site_name):
 
 
 def get_mesh_transform_filename(site_name):
-    if site_name in ("chips", "delta", "valley"):
-        return get_cameras_filename(site_name)
-    elif site_name == "lassic":
-        # Lassic was processed differently, so this hack is required
-        return Path(
-            "/ofo-share/str-disp_drone-data-partial/imagery-processed/outputs/120m-01/Lassic-120m_20240213T0503_cameras.xml"
-        )
-    else:
-        raise ValueError(f"Site {site_name} not found")
+    return get_cameras_filename(site_name)
 
 
 def get_DTM_filename(site_name):
@@ -127,6 +128,16 @@ def get_labeled_mesh_filename(site_name):
     )
 
 
+def get_training_chips_folder(training_site):
+    return Path(
+        DATA_ROOT,
+        "per_site_processing",
+        training_site,
+        "03_training_data",
+        "ortho",
+    )
+
+
 def get_oblique_images_folder(short_model_name):
     return {
         "chips": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/ChipsB/ChipsB_80m_2021_complete",
@@ -136,19 +147,23 @@ def get_oblique_images_folder(short_model_name):
     }[short_model_name]
 
 
-def get_render_scratch_folder(short_model_name):
-    # Where to save the rendering label images
-    return Path(
-        SCRATCH_ROOT,
-        "per_site_processing",
-        short_model_name,
-        "03_training_data",
-        "renders",
-    )
+def get_subfolder_by_mission_type(folder, mission_type):
+    subfolders = list(filter(os.path.isdir, list(folder.glob("*"))))
+    if mission_type == "MV-LO":
+        subfolders = list(filter(lambda x: "_120m" not in str(x), subfolders))
+    elif mission_type == "MV-HN":
+        subfolders = list(filter(lambda x: "_120m" in str(x), subfolders))
+    else:
+        raise ValueError
+
+    if len(subfolders) != 1:
+        raise ValueError
+
+    return subfolders[0]
 
 
-def get_render_folder(site_name):
-    return Path(
+def get_render_folder(site_name, mission_type=None):
+    render_folder = Path(
         DATA_ROOT,
         "per_site_processing",
         site_name,
@@ -156,14 +171,14 @@ def get_render_folder(site_name):
         "MV",
         "rendered_labels",
     )
+    if mission_type is None:
+        return render_folder
+    else:
+        return get_subfolder_by_mission_type(render_folder, mission_type=mission_type)
 
 
-def get_mesh_vis_file(site_name):
-    return Path(DATA_ROOT, "..", site_name, "mesh_vis.png").resolve()
-
-
-def get_subset_images_savefolder(site_name):
-    return Path(
+def get_subset_images_folder(site_name, mission_type=None):
+    subset_images_folder = Path(
         DATA_ROOT,
         "per_site_processing",
         site_name,
@@ -171,45 +186,70 @@ def get_subset_images_savefolder(site_name):
         "MV",
         "images",
     )
+    if mission_type is None:
+        return subset_images_folder
+    else:
+        return get_subfolder_by_mission_type(
+            subset_images_folder, mission_type=mission_type
+        )
+
+
+def get_mesh_vis_file(site_name):
+    return Path(VIS_ROOT, site_name, "mesh_vis.png").resolve()
+
+
+def get_labels_vis_folder(site_name, mission_type):
+    return Path(
+        VIS_ROOT,
+        site_name,
+        "rendered_labels_vis",
+        mission_type,
+    )
 
 
 def get_training_sites_str(training_sites):
     return "_".join(training_sites)
 
 
-def get_training_data_folder(training_sites, is_ortho, is_scratch):
+def get_formatted_training_data_folder(training_sites, mission_type):
     training_sites_str = get_training_sites_str(training_sites)
-    ortho_or_mvmt_str = "ortho" if is_ortho else "MVMT"
     return Path(
-        SCRATCH_ROOT if is_scratch else DATA_ROOT,
+        DATA_ROOT,
         "models",
         "multi_site",
-        ortho_or_mvmt_str + "_" + training_sites_str,
+        mission_type + "_" + training_sites_str,
+        "formatted_training_data",
     )
 
 
-def get_aggregated_labels_folder(training_sites, is_ortho):
-    training_data_folder = get_training_data_folder(
-        training_sites, is_ortho=is_ortho, is_scratch=True
+def get_aggregated_labels_folder(training_sites, mission_type):
+    training_data_folder = get_formatted_training_data_folder(
+        training_sites,
+        mission_type=mission_type,
     )
-    ortho_or_mvmt_str = "ortho" if is_ortho else "MVMT"
-    return Path(training_data_folder, ortho_or_mvmt_str, "inputs", "labels")
+    return Path(training_data_folder, "labels")
 
 
-def get_aggregated_images_folder(training_sites, is_ortho):
-    training_data_folder = get_training_data_folder(
-        training_sites, is_ortho=is_ortho, is_scratch=True
+def get_aggregated_images_folder(training_sites, mission_type):
+    training_data_folder = get_formatted_training_data_folder(
+        training_sites, mission_type=mission_type
     )
-    ortho_or_mvmt_str = "ortho" if is_ortho else "MVMT"
-    return Path(training_data_folder, ortho_or_mvmt_str, "inputs", "images")
+    return Path(training_data_folder, "images")
 
 
-def get_work_dir(training_sites, is_ortho, is_scratch):
-    training_data_folder = get_training_data_folder(
-        training_sites, is_ortho=is_ortho, is_scratch=is_scratch
+def get_work_dir(training_sites, mission_type, run_ID="00"):
+    training_data_folder = get_formatted_training_data_folder(
+        training_sites, mission_type=mission_type
+    ).parent
+    return Path(training_data_folder, f"work_dir_{run_ID}")
+
+
+def get_mmseg_style_training_folder(training_sites, mission_type):
+    training_data_folder = get_formatted_training_data_folder(
+        training_sites, mission_type=mission_type
     )
-
-    return Path(training_data_folder, "work_dir")
+    named_folder = training_data_folder.parts[-2]
+    return Path(training_data_folder, f"{named_folder}_mmseg_style")
 
 
 def get_inference_image_folder(site_name):
@@ -222,14 +262,15 @@ def get_inference_image_folder(site_name):
     )
 
 
-def get_prediction_folder(prediction_site, training_sites, is_ortho):
+def get_prediction_folder(prediction_site, training_sites, mission_type, run_ID):
     training_sites_str = get_training_sites_str(training_sites=training_sites)
     return Path(
         DATA_ROOT,
         "per_site_processing",
         prediction_site,
-        "04_model_preds",
-        f"{training_sites_str}_{'ortho' if is_ortho else 'MVMT'}_model",
+        "04_model_predictions",
+        f"{training_sites_str}_{mission_type}_model",
+        f"run_{run_ID}",
     )
 
 
@@ -240,7 +281,48 @@ def get_predicted_output_base_file(prediction_site, training_sites):
         "per_site_processing",
         prediction_site,
         "05_processed_predictions",
-        f"{prediction_site}_80m_{training_sites_str}_model",
+    )
+
+
+def get_aggregated_face_values_file(
+    prediction_site, training_sites, mission_type, run_ID
+):
+    predicted_output_base_file = get_predicted_output_base_file(
+        prediction_site, training_sites
+    )
+
+    return Path(
+        predicted_output_base_file,
+        f"aggregated_face_values_{mission_type}",
+        f"run_{run_ID}.npy",
+    )
+
+
+def get_predicted_labeled_polygons_file(
+    prediction_site, training_sites, mission_type, run_ID
+):
+    predicted_output_base_file = get_predicted_output_base_file(
+        prediction_site, training_sites
+    )
+
+    return Path(
+        predicted_output_base_file,
+        f"predicted_labeled_polygons_{mission_type}",
+        f"run_{run_ID}.geojson",
+    )
+
+
+def get_figure_export_confusion_matrix_file(
+    prediction_site, training_sites, mission_type, run_ID
+):
+    predicted_output_base_file = get_predicted_output_base_file(
+        prediction_site, training_sites
+    )
+
+    return Path(
+        predicted_output_base_file,
+        f"cf_matrix_{mission_type}",
+        f"run_{run_ID}.svg",
     )
 
 
@@ -250,48 +332,21 @@ def get_predicted_vector_labels_filename(prediction_site, training_sites):
     ).with_suffix(".geojson")
 
 
-def get_predicted_polygons_labels_filename(prediction_site, training_sites, is_ortho):
-    base_file = get_predicted_output_base_file(
-        prediction_site=prediction_site, training_sites=training_sites
-    )
-    return Path(
-        str(base_file) + f"labeled_polygons_{'ortho' if is_ortho else 'MVMT'}.geojson"
-    )
-
-
 def get_numpy_export_faces_texture_filename(prediction_site, training_sites):
     return get_predicted_output_base_file(
         prediction_site=prediction_site, training_sites=training_sites
     ).with_suffix(".npy")
 
 
-def get_numpy_export_cf_filename(prediction_site_name, training_sites, is_ortho):
-    base_file = get_predicted_output_base_file(
-        prediction_site=prediction_site_name, training_sites=training_sites
-    )
-    extension_str = f"_{'ortho' if is_ortho else 'MVMT'}_confusion_matrix.npy"
-    return Path(str(base_file) + extension_str)
-
-
-def get_numpy_export_confusion_matrix_file(inference_site, is_ortho):
-    ortho_or_mvmt_str = "ortho" if is_ortho else "MVMT"
+def get_aggregated_raster_pred_file(training_sites, inference_site, run_ID):
+    training_sites_str = get_training_sites_str(training_sites=training_sites)
     return Path(
         DATA_ROOT,
         "per_site_processing",
         inference_site,
         "05_processed_predictions",
-        f"{inference_site}_{ortho_or_mvmt_str}_confusion_matrix.npy",
-    )
-
-
-def get_figure_export_confusion_matrix_file(inference_site, is_ortho):
-    ortho_or_mvmt_str = "ortho" if is_ortho else "MVMT"
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        inference_site,
-        "05_processed_predictions",
-        f"{inference_site}_{ortho_or_mvmt_str}_confusion_matrix.png",
+        f"{training_sites_str}_model_ortho_aggregated_raster",
+        f"run_{run_ID}.tif",
     )
 
 
@@ -301,19 +356,7 @@ def get_training_raster_filename(training_site):
         "per_site_processing",
         training_site,
         "02_photogrammetry",
-        "exports",
-        "orthos",
-        f"{training_site}.tif",
-    )
-
-
-def get_training_chips_folder(training_site):
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        training_site,
-        "03_training_data",
-        f"ortho_chipped_images_{training_site}",
+        f"{training_site}_ortho.tif",
     )
 
 
@@ -334,17 +377,6 @@ def get_inference_chips_folder(inference_site):
         DATA_ROOT,
         "per_site_processing",
         inference_site,
-        "04_model_preds",
+        "04_model_predictions",
         "ortho_chipped_images",
-    )
-
-
-def get_aggregated_raster_pred_file(training_sites, inference_site):
-    training_sites_str = get_training_sites_str(training_sites=training_sites)
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        inference_site,
-        "05_processed_predictions",
-        f"{training_sites_str}_model_ortho_pred.tif",
     )

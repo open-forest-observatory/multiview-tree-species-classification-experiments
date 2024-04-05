@@ -1,21 +1,23 @@
-from geograypher.entrypoints import render_labels
 from constants import (
-    get_mesh_filename,
-    get_image_folder,
+    GROUND_HEIGHT_THRESHOLD,
+    LABELS_COLUMN,
+    LABELS_FILENAME,
+    get_cameras_filename,
     get_DTM_filename,
     get_IDs_to_labels,
-    get_cameras_filename,
-    get_mesh_transform_filename,
-    get_render_folder,
-    get_subset_images_savefolder,
+    get_image_folder,
     get_labeled_mesh_filename,
+    get_labels_vis_folder,
+    get_mesh_filename,
+    get_mesh_transform_filename,
     get_mesh_vis_file,
-    LABELS_FILENAME,
-    LABELS_COLUMN,
-    GROUND_HEIGHT_THRESHOLD,
+    get_render_folder,
+    get_subset_images_folder,
 )
+from geograypher.entrypoints import render_labels
+from geograypher.utils.visualization import show_segmentation_labels
 
-SITE_NAMES = ["chips", "delta", "lassic", "valley"]
+SITE_NAMES = ["chips", "delta", "lassic", "valley"][2:]
 
 IDs_to_labels = get_IDs_to_labels()
 
@@ -26,9 +28,10 @@ for site_name in SITE_NAMES:
     DTM_file = get_DTM_filename(site_name)
     mesh_transform_file = get_mesh_transform_filename(site_name)
     render_folder = get_render_folder(site_name)
-    subset_images_savefolder = get_subset_images_savefolder(site_name)
+    subset_images_savefolder = get_subset_images_folder(site_name)
     labeled_mesh_filename = get_labeled_mesh_filename(site_name)
     mesh_vis_file = get_mesh_vis_file(site_name)
+    labels_vis_folder = get_labels_vis_folder(site_name)
 
     print(f"About to render {site_name}")
     render_labels(
@@ -43,6 +46,6 @@ for site_name in SITE_NAMES:
         subset_images_savefolder=subset_images_savefolder,
         render_savefolder=render_folder,
         textured_mesh_savefile=labeled_mesh_filename,
-        vis=True,
         mesh_vis_file=mesh_vis_file,
+        labels_vis_folder=labels_vis_folder,
     )

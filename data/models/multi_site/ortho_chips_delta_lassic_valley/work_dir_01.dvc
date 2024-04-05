@@ -1,0 +1,6 @@
+outs:
+- md5: 1aef7004471b4e30c9ca231928ce3952.dir
+  size: 1972169382
+  nfiles: 8
+  hash: md5
+  path: work_dir_01

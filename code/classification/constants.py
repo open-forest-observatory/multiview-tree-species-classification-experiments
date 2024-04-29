@@ -70,6 +70,10 @@ def get_IDs_to_labels(with_ground=False):
     return IDs_to_labels
 
 
+def get_unlabeled_crowns_file(site):
+    return Path(DATA_ROOT, "field_ref", "unlabeled_full_site_crowns", f"{site}.gpkg")
+
+
 def get_image_folder(site_name, mission_type=None):
     image_folder = Path(
         DATA_ROOT,
@@ -281,6 +285,7 @@ def get_predicted_output_base_file(prediction_site, training_sites):
         "per_site_processing",
         prediction_site,
         "05_processed_predictions",
+        f"{training_sites_str}_model",
     )
 
 
@@ -293,7 +298,8 @@ def get_aggregated_face_values_file(
 
     return Path(
         predicted_output_base_file,
-        f"aggregated_face_values_{mission_type}",
+        mission_type,
+        "aggregated_face_values",
         f"run_{run_ID}.npy",
     )
 
@@ -307,7 +313,8 @@ def get_predicted_labeled_polygons_file(
 
     return Path(
         predicted_output_base_file,
-        f"predicted_labeled_polygons_{mission_type}",
+        mission_type,
+        "predicted_labeled_polygons",
         f"run_{run_ID}.geojson",
     )
 
@@ -321,7 +328,8 @@ def get_figure_export_confusion_matrix_file(
 
     return Path(
         predicted_output_base_file,
-        f"cf_matrix_{mission_type}",
+        mission_type,
+        "cf_matrix",
         f"run_{run_ID}.svg",
     )
 
@@ -335,7 +343,8 @@ def get_npy_export_confusion_matrix_file(
 
     return Path(
         predicted_output_base_file,
-        f"cf_matrix_{mission_type}",
+        mission_type,
+        f"cf_matrix",
         f"run_{run_ID}.npy",
     )
 

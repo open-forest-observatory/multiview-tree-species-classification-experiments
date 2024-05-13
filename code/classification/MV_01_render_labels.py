@@ -1,4 +1,7 @@
+from argparse import ArgumentParser
+
 from constants import (
+    ALL_SITE_NAMES,
     GROUND_HEIGHT_THRESHOLD,
     LABELS_COLUMN,
     LABELS_FILENAME,
@@ -15,13 +18,19 @@ from constants import (
     get_subset_images_folder,
 )
 from geograypher.entrypoints import render_labels
-from geograypher.utils.visualization import show_segmentation_labels
 
-SITE_NAMES = ["chips", "delta", "lassic", "valley"][2:]
 
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument("--site-names", nargs="+", default=ALL_SITE_NAMES)
+    args = parser.parse_args()
+    return args
+
+
+args = parse_args()
 IDs_to_labels = get_IDs_to_labels()
 
-for site_name in SITE_NAMES:
+for site_name in args.site_names:
     image_folder = get_image_folder(site_name)
     mesh_file = get_mesh_filename(site_name)
     cameras_file = get_cameras_filename(site_name)
@@ -31,7 +40,7 @@ for site_name in SITE_NAMES:
     subset_images_savefolder = get_subset_images_folder(site_name)
     labeled_mesh_filename = get_labeled_mesh_filename(site_name)
     mesh_vis_file = get_mesh_vis_file(site_name)
-    labels_vis_folder = get_labels_vis_folder(site_name)
+    labels_vis_folder = get_labels_vis_folder(site_name, mission_type="MV")
 
     print(f"About to render {site_name}")
     render_labels(

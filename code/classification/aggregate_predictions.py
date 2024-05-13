@@ -33,11 +33,13 @@ def parse_args():
     parser.add_argument("--aggregate", action="store_true")
     parser.add_argument("--label-polygons", action="store_true")
     parser.add_argument("--compute-accuracy", action="store_true")
+    parser.add_argument("--vis", action="store_true")
     parser.add_argument(
         "--site-names", nargs="+", default=["valley", "chips", "delta", "lassic"]
     )
     parser.add_argument("--run-IDs", nargs="+", default=("00",))
     parser.add_argument("--mission-types", nargs="+", default=("MV-LO",))
+
     args = parser.parse_args()
     return args
 
@@ -117,7 +119,9 @@ for run_ID in args.run_IDs:
                     aggregated_face_values_savefile=aggregated_face_values_file,
                     aggregate_image_scale=IMAGE_DOWNSAMPLE,
                     n_aggregation_clusters=N_AGGREGATION_CLUSTERS,
+                    vis=args.vis,
                 )
+
             if args.label_polygons:
                 label_polygons(
                     mesh_file=mesh_file,
@@ -128,7 +132,7 @@ for run_ID in args.run_IDs:
                     IDs_to_labels=IDs_to_labels,
                     geospatial_polygons_to_label=geospatial_polygons_to_label,
                     geospatial_polygons_labeled_savefile=predicted_labeled_polygons_file,
-                    vis_mesh=True,
+                    vis_mesh=args.vis,
                 )
 
             if args.compute_accuracy:

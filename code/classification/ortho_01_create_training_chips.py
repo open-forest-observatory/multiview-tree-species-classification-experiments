@@ -1,4 +1,5 @@
 from pathlib import Path
+from argparse import ArgumentParser
 
 import geopandas as gpd
 import numpy as np
@@ -17,14 +18,23 @@ from constants import (
 from geograypher.segmentation import write_chips
 from geograypher.utils.visualization import show_segmentation_labels
 
+
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument("--site-names", nargs="+", default=ALL_SITE_NAMES)
+    args = parser.parse_args()
+    return args
+
+
+args = parse_args()
+
 # # Create training chips
 IDs_to_labels = get_IDs_to_labels()
 # Interchange the keys and values
 label_remap = {v: k for k, v in IDs_to_labels.items()}
 class_names = np.unique(gpd.read_file(LABELS_FILENAME)[LABELS_COLUMN]).tolist()
 
-for training_site in ALL_SITE_NAMES:
-
+for training_site in args.site_names:
     training_raster_filename = get_training_raster_filename(training_site=training_site)
     training_chips_folder = get_training_chips_folder(training_site=training_site)
     labels_vis_folder = get_labels_vis_folder(training_site, mission_type="ortho")
@@ -45,6 +55,8 @@ for training_site in ALL_SITE_NAMES:
     show_segmentation_labels(
         label_folder=Path(training_chips_folder, "anns"),
         image_folder=Path(training_chips_folder, "imgs"),
+        label_suffix=".png",
         image_suffix=TRAINING_IMGS_EXT,
         savefolder=labels_vis_folder,
+        IDs_to_labels=IDs_to_labels,
     )

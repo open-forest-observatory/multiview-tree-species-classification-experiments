@@ -22,6 +22,7 @@ from geograypher.utils.visualization import show_segmentation_labels
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--site-names", nargs="+", default=ALL_SITE_NAMES)
+    parser.add_argument("--just-vis", action="store_true")
     args = parser.parse_args()
     return args
 
@@ -39,18 +40,21 @@ for training_site in args.site_names:
     training_chips_folder = get_training_chips_folder(training_site=training_site)
     labels_vis_folder = get_labels_vis_folder(training_site, mission_type="ortho")
 
-    # create the paired ortho chips and associated labels
-    write_chips(
-        raster_file=training_raster_filename,
-        output_folder=training_chips_folder,
-        chip_size=CHIP_SIZE,
-        chip_stride=TRAINING_STRIDE,
-        label_vector_file=LABELS_FILENAME,
-        label_column=LABELS_COLUMN,
-        label_remap=label_remap,
-        output_suffix=TRAINING_IMGS_EXT,
-        ROI_file=LABELS_FILENAME,
-    )
+    if not args.just_vis:
+        print(f"Writing {training_site}")
+        # create the paired ortho chips and associated labels
+        write_chips(
+            raster_file=training_raster_filename,
+            output_folder=training_chips_folder,
+            chip_size=CHIP_SIZE,
+            chip_stride=TRAINING_STRIDE,
+            label_vector_file=LABELS_FILENAME,
+            label_column=LABELS_COLUMN,
+            label_remap=label_remap,
+            output_suffix=TRAINING_IMGS_EXT,
+            ROI_file=LABELS_FILENAME,
+        )
+    print(f"Showing {training_site}")
     # Visualize this training data
     show_segmentation_labels(
         label_folder=Path(training_chips_folder, "anns"),

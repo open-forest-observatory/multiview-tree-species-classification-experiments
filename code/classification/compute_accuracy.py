@@ -26,6 +26,7 @@ all_cfs = {}
 
 MISSION_TYPES = ("ortho", "MV-HN", "MV-LO")
 RUN_IDS = ("00", "01", "02")
+CLASSES = ("ABCO", "CADE", "PILA", "PIPJ", "PSME")
 
 # Read in all the saved confusion matrices
 for mission_type in MISSION_TYPES:
@@ -160,3 +161,58 @@ for key in cfs_by_mission_site.keys():
     cf_disp.plot()
 
     plt.savefig(Path(site_mission_cf_savefolder, f"{key[1]}_{key[0]}.png"))
+
+# Compute species-level metrics
+print(metrics_by_mission_run)
+
+per_class_acc = defaultdict(list)
+per_class_rec = defaultdict(list)
+per_class_prec = defaultdict(list)
+
+for (mission, run), metrics in metrics_by_mission_run.items():
+    for cls in CLASSES:
+        key = (mission, cls)
+        class_metric = metrics["per_class"][cls]
+        per_class_acc[key].append(class_metric["acc"])
+        per_class_rec[key].append(class_metric["recall"])
+        per_class_prec[key].append(class_metric["precision"])
+
+# The reversed indexing is because the mission should be first but the product needs to be the other
+# way to match the table
+missions_cls = [x[::-1] for x in list(product(CLASSES, MISSION_TYPES))]
+print(missions_cls)
+breakpoint()
+# Print the values for per class, per mission
+
+# Print accuracies
+print("\n\n\nAcc.", end="")
+for mc in missions_cls:
+    print(f" & {np.mean(per_class_acc[mc]):.2f}", end="")
+print("\\\\")
+# And their std
+print("std", end="")
+for mc in missions_cls:
+    print(f" & {np.std(per_class_acc[mc]):.2f}", end="")
+print("\\\\ \\hline")
+
+print("Rec.", end="")
+for mc in missions_cls:
+    print(f" & {np.mean(per_class_rec[mc]):.2f}", end="")
+print("\\\\")
+# And their std
+print("std", end="")
+for mc in missions_cls:
+    print(f" & {np.std(per_class_rec[mc]):.2f}", end="")
+print("\\\\ \\hline")
+
+print("Prec.", end="")
+for mc in missions_cls:
+    print(f" & {np.mean(per_class_prec[mc]):.2f}", end="")
+print("\\\\")
+# And their std
+print("std", end="")
+for mc in missions_cls:
+    print(f" & {np.std(per_class_prec[mc]):.2f}", end="")
+print("\\\\ \\hline\n\n\n")
+
+breakpoint()

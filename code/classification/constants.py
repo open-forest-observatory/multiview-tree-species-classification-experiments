@@ -1,5 +1,5 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
 # Important folders
 # TODO make this work for notebooks as well if needed
@@ -158,10 +158,10 @@ def get_subfolder_by_mission_type(folder, mission_type):
     elif mission_type == "MV-HN":
         subfolders = list(filter(lambda x: "_120m" in str(x), subfolders))
     else:
-        raise ValueError
+        raise ValueError(f"Mission type {mission_type} not valid")
 
     if len(subfolders) != 1:
-        raise ValueError
+        raise ValueError("Subfolders")
 
     return subfolders[0]
 
@@ -344,7 +344,7 @@ def get_npy_export_confusion_matrix_file(
     return Path(
         predicted_output_base_file,
         mission_type,
-        f"cf_matrix",
+        "cf_matrix",
         f"run_{run_ID}.npy",
     )
 

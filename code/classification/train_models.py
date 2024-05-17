@@ -1,32 +1,34 @@
 # Standard library imports
-import subprocess
 import json
-import shutil
-import sys
 import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from argparse import ArgumentParser
+
+import matplotlib.pyplot as plt
 
 # Contributed library imports
 import numpy as np
-import matplotlib.pyplot as plt
 from imageio import imread
-from pathlib import Path
 
 # Imports from the constants
 sys.path.append("../..")
 from constants import (
-    get_aggregated_images_folder,
-    get_aggregated_labels_folder,
-    get_subset_images_folder,
-    get_render_folder,
-    get_mmseg_style_training_folder,
-    get_work_dir,
-    get_training_chips_folder,
-    get_IDs_to_labels,
+    FOLDER_TO_CITYSCAPES_SCRIPT,
     MMSEG_PYTHON,
+    MMSEG_UTILS_PYTHON,
     TRAIN_SCRIPT,
     TRAINING_IMGS_EXT,
-    MMSEG_UTILS_PYTHON,
-    FOLDER_TO_CITYSCAPES_SCRIPT,
+    get_aggregated_images_folder,
+    get_aggregated_labels_folder,
+    get_IDs_to_labels,
+    get_mmseg_style_training_folder,
+    get_render_folder,
+    get_subset_images_folder,
+    get_training_chips_folder,
+    get_work_dir,
 )
 
 
@@ -124,18 +126,29 @@ def train_model(mission_type, training_sites, run_ID):
     )
 
 
-# ALL_MISSION_TYPES = ("MV-HN", "MV-LO")
-ALL_MISSION_TYPES = ("ortho",)
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--mission-types", nargs="+", default=("ortho", "MV-HN", "MV-LO")
+    )
+    parser.add_argument("--run-IDs", nargs="+", default=("00", "01", "02"))
+    args = parser.parse_args()
+
+    return args
+
+
 ALL_TRAINING_SITES = (
-    ["chips", "delta", "lassic", "valley"],
     ["chips", "delta", "lassic"],
     ["chips", "delta", "valley"],
     ["chips", "lassic", "valley"],
     ["delta", "lassic", "valley"],
 )
-for run_ID in ("00", "01", "02"):
+
+args = parse_args()
+
+for run_ID in args.run_IDs:
     for training_sites in ALL_TRAINING_SITES:
-        for mission_type in ALL_MISSION_TYPES:
+        for mission_type in args.mission_types:
             train_model(
                 mission_type=mission_type,
                 training_sites=training_sites,

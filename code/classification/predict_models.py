@@ -1,14 +1,15 @@
+import subprocess
+from pathlib import Path
+
 from constants import (
+    INFERENCE_SCRIPT,
+    MMSEG_PYTHON,
+    get_image_folder,
     get_prediction_folder,
     get_subset_images_folder,
-    get_image_folder,
-    get_work_dir,
     get_training_chips_folder,
-    MMSEG_PYTHON,
-    INFERENCE_SCRIPT,
+    get_work_dir,
 )
-from pathlib import Path
-import subprocess
 
 BATCH_SIZE = 2
 

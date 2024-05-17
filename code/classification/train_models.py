@@ -4,32 +4,23 @@ import os
 import shutil
 import subprocess
 import sys
-from pathlib import Path
 from argparse import ArgumentParser
+from pathlib import Path
 
 import matplotlib.pyplot as plt
-
 # Contributed library imports
 import numpy as np
 from imageio import imread
 
 # Imports from the constants
 sys.path.append("../..")
-from constants import (
-    FOLDER_TO_CITYSCAPES_SCRIPT,
-    MMSEG_PYTHON,
-    MMSEG_UTILS_PYTHON,
-    TRAIN_SCRIPT,
-    TRAINING_IMGS_EXT,
-    get_aggregated_images_folder,
-    get_aggregated_labels_folder,
-    get_IDs_to_labels,
-    get_mmseg_style_training_folder,
-    get_render_folder,
-    get_subset_images_folder,
-    get_training_chips_folder,
-    get_work_dir,
-)
+from constants import (FOLDER_TO_CITYSCAPES_SCRIPT, MMSEG_PYTHON,
+                       MMSEG_UTILS_PYTHON, TRAIN_SCRIPT, TRAINING_IMGS_EXT,
+                       get_aggregated_images_folder,
+                       get_aggregated_labels_folder, get_IDs_to_labels,
+                       get_mmseg_style_training_folder, get_render_folder,
+                       get_subset_images_folder, get_training_chips_folder,
+                       get_work_dir)
 
 
 def train_model(mission_type, training_sites, run_ID):

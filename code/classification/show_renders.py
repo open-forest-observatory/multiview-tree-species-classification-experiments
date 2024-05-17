@@ -1,9 +1,7 @@
-from constants import (
-    get_labels_vis_folder,
-    get_render_folder,
-    get_subset_images_savefolder,
-)
 from geograypher.utils.visualization import show_segmentation_labels
+
+from constants import (get_labels_vis_folder, get_render_folder,
+                       get_subset_images_savefolder)
 
 site = "lassic"
 

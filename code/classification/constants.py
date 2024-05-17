@@ -6,7 +6,7 @@ from pathlib import Path
 # Because of the difficulty of having a shared set of dependencies, we use multiple different conda
 # environments for different parts of the pipeline
 # Python interpreter for the segmentation_utils conda repository
-MMSEG_UTILS_PYTHON = "/ofo-share/repos-david/conda/envs/mmseg-utils/bin/python"
+SEGMENTATION_UTILS_PYTHON = "/ofo-share/repos-david/conda/envs/mmseg-utils/bin/python"
 # Python interpreter for the MMSegmentation conda repository
 MMSEG_PYTHON = "/ofo-share/repos-david/conda/envs/openmmlab/bin/python"
 

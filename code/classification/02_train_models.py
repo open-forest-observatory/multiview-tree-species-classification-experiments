@@ -15,7 +15,7 @@ from imageio import imread
 # Imports from the constants
 sys.path.append("../..")
 from constants import (FOLDER_TO_CITYSCAPES_SCRIPT, MMSEG_PYTHON,
-                       MMSEG_UTILS_PYTHON, TRAIN_SCRIPT, TRAINING_IMGS_EXT,
+                       SEGMENTATION_UTILS_PYTHON, TRAIN_SCRIPT, TRAINING_IMGS_EXT,
                        get_aggregated_images_folder,
                        get_aggregated_labels_folder, get_IDs_to_labels,
                        get_mmseg_style_training_folder, get_render_folder,
@@ -94,7 +94,7 @@ def train_model(mission_type, training_sites, run_ID):
         training_sites=training_sites, mission_type=mission_type
     )
     formatting_run_str = (
-        f"{MMSEG_UTILS_PYTHON} {FOLDER_TO_CITYSCAPES_SCRIPT} --images-folder {aggregated_images_folder}"
+        f"{SEGMENTATION_UTILS_PYTHON} {FOLDER_TO_CITYSCAPES_SCRIPT} --images-folder {aggregated_images_folder}"
         + f" --labels-folder {aggregated_labels_folder} --output-folder {mmseg_style_training_folder}"
         + f" --image-ext {image_ext} --classes {class_names_str} --remove-old"
     )

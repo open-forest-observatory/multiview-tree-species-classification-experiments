@@ -1,6 +1,30 @@
 import os
 from pathlib import Path
 
+# Python utilities
+# TODO modify these if you are setting up your own project
+# Because of the difficulty of having a shared set of dependencies, we use multiple different conda
+# environments for different parts of the pipeline
+# Python interpreter for the segmentation_utils conda repository
+MMSEG_UTILS_PYTHON = "/ofo-share/repos-david/conda/envs/mmseg-utils/bin/python"
+# Python interpreter for the MMSegmentation conda repository
+MMSEG_PYTHON = "/ofo-share/repos-david/conda/envs/openmmlab/bin/python"
+
+# Location of the segmentation_utils folder
+SEGMENTATION_UTILS_FOLDER = "/ofo-share/repos-david/mmsegmentation_utils"
+# Location of the MMSegmentation folder
+MMSEGMENTATION_FOLDER = "/ofo-share/repos-david/mmsegmentation"
+
+# Scripts used for various tasks
+FOLDER_TO_CITYSCAPES_SCRIPT = Path(
+    SEGMENTATION_UTILS_FOLDER, "dev", "dataset_creation", "folder_to_cityscapes.py"
+)
+VIS_PREDS_SCRIPT = Path(
+    SEGMENTATION_UTILS_FOLDER, "dev", "visualization", "visualize_semantic_labels.py"
+)
+TRAIN_SCRIPT = Path(MMSEGMENTATION_FOLDER, "tools", "train.py")
+INFERENCE_SCRIPT = Path(MMSEGMENTATION_FOLDER, "tools", "inference.py")
+
 # Important folders
 # TODO make this work for notebooks as well if needed
 PROJECT_ROOT = Path(__file__, "..", "..", "..").resolve()
@@ -24,15 +48,6 @@ LONG_SITE_NAME_DICT = {
     "delta": "DeltaB",
     "lassic": "Lassic",
 }
-
-# Python utilities
-MMSEG_UTILS_PYTHON = "/ofo-share/repos-david/conda/envs/mmseg-utils/bin/python"
-MMSEG_PYTHON = "/ofo-share/repos-david/conda/envs/openmmlab/bin/python"
-
-FOLDER_TO_CITYSCAPES_SCRIPT = "/ofo-share/repos-david/mmsegmentation_utils/dev/dataset_creation/folder_to_cityscapes.py"
-VIS_PREDS_SCRIPT = "/ofo-share/repos-david/mmsegmentation_utils/dev/visualization/visualize_semantic_labels.py"
-TRAIN_SCRIPT = "/ofo-share/repos-david/mmsegmentation/tools/train.py"
-INFERENCE_SCRIPT = "/ofo-share/repos-david/mmsegmentation/tools/inference.py"
 
 
 TRAINING_IMGS_EXT = ".png"

@@ -1,20 +1,16 @@
 import subprocess
+from argparse import ArgumentParser
 from pathlib import Path
 
-from constants import (
-    INFERENCE_SCRIPT,
-    MMSEG_PYTHON,
-    get_image_folder,
-    get_prediction_folder,
-    get_subset_images_folder,
-    get_training_chips_folder,
-    get_work_dir,
-)
-
-BATCH_SIZE = 2
+from constants import (ALL_SITE_NAMES, INFERENCE_SCRIPT, MMSEG_PYTHON,
+                       get_image_folder, get_prediction_folder,
+                       get_subset_images_folder, get_training_chips_folder,
+                       get_work_dir)
 
 
-def predict_model(mission_type, training_sites, test_site, run_ID, full_site=False):
+def predict_model(
+    mission_type, training_sites, test_site, run_ID, batch_size, full_site=False
+):
     prediction_folder = get_prediction_folder(
         prediction_site=test_site,
         training_sites=training_sites,
@@ -42,7 +38,7 @@ def predict_model(mission_type, training_sites, test_site, run_ID, full_site=Fal
     prediction_folder.mkdir(parents=True, exist_ok=True)
     run_str = (
         f"{MMSEG_PYTHON} {INFERENCE_SCRIPT} {config_file} "
-        + f"{checkpoint_file} {input_images} {prediction_folder} --batch-size {BATCH_SIZE}"
+        + f"{checkpoint_file} {input_images} {prediction_folder} --batch-size {batch_size}"
         + f" --extension {extension}"
     )
     print(run_str)
@@ -52,29 +48,54 @@ def predict_model(mission_type, training_sites, test_site, run_ID, full_site=Fal
     )
 
 
-ALL_SITES = ["chips", "delta", "lassic", "valley"]
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--site-names",
+        nargs="+",
+        default=ALL_SITE_NAMES,
+        help="Sites to generate prediction on",
+    )
+    parser.add_argument(
+        "--run-IDs",
+        nargs="+",
+        default=("00", "01", "02"),
+        help="The run IDs to generate predictions from",
+    )
+    parser.add_argument(
+        "--mission-types",
+        nargs="+",
+        default=("ortho", "MV-HN", "MV-LO"),
+        help="The mission types to generate predictions on",
+    )
+    parser.add_argument(
+        "--batch-size",
+        default=2,
+        type=int,
+        help="The number of images to run inference on at once",
+    )
+    parser.add_argument(
+        "--full-site",
+        action="store_true",
+        help="Whether to run inference on the full site or just the region near the labeled polygons",
+    )
 
-# ALL_MISSION_TYPES = ("MV-HN", "MV-LO")
-ALL_MISSION_TYPES = ("ortho",)
+    args = parser.parse_args()
 
-# for run_ID in ("02",):
-#    for test_site in ALL_SITES:
-#        for mission_type in ALL_MISSION_TYPES:
-#            training_sites = list(filter(lambda x: x != test_site, ALL_SITES))
-#            predict_model(
-#                mission_type=mission_type,
-#                training_sites=training_sites,
-#                test_site=test_site,
-#                run_ID=run_ID,
-#            )
+    return args
 
-for run_ID in ("00",):
-    for test_site in ALL_SITES:
-        for mission_type in ("MV-HN", "MV-LO"):
-            predict_model(
-                mission_type=mission_type,
-                training_sites=ALL_SITES,
-                test_site=test_site,
-                run_ID=run_ID,
-                full_site=True,
-            )
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    for run_ID in args.run_IDs:
+        for test_site in args.site_names:
+            for mission_type in args.mission_types:
+                predict_model(
+                    mission_type=mission_type,
+                    training_sites=ALL_SITE_NAMES,
+                    test_site=test_site,
+                    run_ID=run_ID,
+                    batch_size=args.batch_size,
+                    full_site=args.full_site,
+                )

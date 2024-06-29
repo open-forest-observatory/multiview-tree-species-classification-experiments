@@ -2,12 +2,14 @@
 # trees, filter them to drop trees with < 50% green crown volume, drop trees of very rare species,
 # and merge PIPO and PIJE into PIPJ
 
+PREDICTED_TREECROWNS_W_FIELD_DATA_FILE = "/ofo-share/str-disp_drone-data-v2/predicted-treecrowns-w-field-data/predicted-treecrowns-w-field-data.gpkg"
+PREDICTED_TREECROWNS_W_FIELD_DATA_FILTERED_FILE = "/ofo-share/str-disp_drone-data-v2/predicted-treecrowns-w-field-data/predicted-treecrowns-w-field-data-filtered.gpkg"
+
+
 library(tidyverse)
 library(sf)
 
-data_dir = readLines("data_dir.txt", n = 1)
-
-crowns = st_read(file.path(data_dir, "out_crowns-w-field-labels", "crowns_drone_w_field_data.gpkg"))
+crowns = st_read(PREDICTED_TREECROWNS_W_FIELD_DATA_FILE)
 
 crowns = crowns |>
   filter(percent_green_observed >= 50) |>
@@ -16,4 +18,4 @@ crowns = crowns |>
                                    "PIPO" = "PIPJ",
                                    "PIJE" = "PIPJ"))
 
-st_write(crowns, file.path(data_dir, "out_crowns-w-field-labels", "crowns_drone_w_field_data_filtered.gpkg"), delete_dsn = TRUE)
+st_write(crowns, PREDICTED_TREECROWNS_W_FIELD_DATA_FILTERED_FILE, delete_dsn = TRUE)

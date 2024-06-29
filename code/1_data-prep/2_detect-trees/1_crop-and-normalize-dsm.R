@@ -7,41 +7,44 @@ library(terra)
 
 #### Setup ####
 
-# The root of the data directory
-data_dir = readLines("data_dir.txt", n=1)
+PHOTOGRAMMETRY_OUTPUTS_DIR = "/ofo-share/str-disp_drone-data-v2/photogrammetry/outputs/"
+CHM_DIR = "/ofo-share/str-disp_drone-data-v2/chms/"
+FIELD_BOUNDARIES_DIR = "/ofo-share/str-disp_drone-data-v2/field-site-boundaries/"
 
 #### Processing ####
 
-site = "lassic" # lassic, chips, delta, valley
+site = "lassic"
 
 
 # load DTM
-dtm = rast(file.path(data_dir, "2_photogrammetry-products", "dtms", paste0(site, ".tif")))
+dtm_file = list.files(PHOTOGRAMMETRY_OUTPUTS_DIR, pattern = paste0(site, "_\\d{8}T\\d{4}_dtm-ptcloud\\.tif"), full.names = TRUE)
+if (length(dtm_file) != 1) stop(paste0("DTM file absent or multiple matches for site: ", site))
+
 
 ## get DSM layer from metashape output
-dsm_file = file.path(data_dir, "2_photogrammetry-products", "dsms", paste0(site, ".tif"))
+dsm_file = list.files(PHOTOGRAMMETRY_OUTPUTS_DIR, pattern = paste0(site, "_\\d{8}T\\d{4}_dsm-mesh\\.tif"), full.names = TRUE)
+if (length(dsm_file) != 1) stop(paste0("Mesh-based DSM file absent or multiple matches for site: ", site))
 
-
-# file to write
-filename = file.path(data_dir, "out_chms", paste0(site, ".tif"))
 
 # get site boundary
-boundary = st_read(file.path(data_dir, "1_field-data", "field-site-boundaries", paste0(site, ".gpkg")))
+boundary_file = file.path(FIELD_BOUNDARIES_DIR, paste0(site, ".gpkg"))
+boundary = st_read(boundary_file)
 
 # Crop to study area boundary
 dsm = rast(dsm_file)
-dsm = crop(dsm, boundary |> st_transform(crs(dsm)))
-dsm = mask(dsm, boundary |> st_transform(crs(dsm)))
+dsm = crop(dsm, boundary |> st_transform(st_crs(dsm)))
+dsm = mask(dsm, boundary |> st_transform(st_crs(dsm)))
 
-dtm = crop(dtm, boundary |> st_transform(crs(dtm)))
-dtm = mask(dtm, boundary |> st_transform(crs(dtm)))
+dtm = rast(dtm_file)
+dtm = crop(dtm, boundary |> st_transform(st_crs(dtm)))
+dtm = mask(dtm, boundary |> st_transform(st_crs(dtm)))
 
 
 ## upscale to 0.12 m
 dsm_upscale = project(dsm, y = "EPSG:3310", res = 0.12, method = "bilinear")
 
 
-## interpolate the the DTM to the res, extent, etc of the DSM
+## interpolate the DTM to the res, extent, etc of the DSM
 dtm_interp = project(dtm, dsm_upscale, method = "bilinear")
 
 
@@ -52,7 +55,8 @@ dtm_interp = project(dtm, dsm_upscale, method = "bilinear")
 chm = dsm_upscale - dtm_interp
 
 
-## create dir if doesn't exist, then write
-writeRaster(chm, filename, overwrite = TRUE)
+## create dir if doesn't exist, then write# file to write
+chm_file = file.path(CHM_DIR, paste0(site, ".tif"))
+writeRaster(chm, chm_file, overwrite = TRUE)
 
 gc()

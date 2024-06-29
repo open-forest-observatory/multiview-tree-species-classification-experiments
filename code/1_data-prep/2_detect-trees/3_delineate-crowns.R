@@ -23,7 +23,7 @@ for (site in sites) {
   ttops = st_read(treetop_file)
 
 
-  # Force raster to load into memory  
+  # Force raster to load into memory
   chm = chm * 1
 
   treecrowns = silva2016(chm, ttops, max_cr_factor = 0.24, exclusion = 0.1)()

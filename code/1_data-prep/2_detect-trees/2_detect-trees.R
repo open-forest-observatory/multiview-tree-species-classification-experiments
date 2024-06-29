@@ -39,7 +39,7 @@ for (site in sites) {
   #resample coarser
   chm_coarse = project(chm, y = "epsg:3310", res = 0.25)
 
-  # skip smoothing
+  # skip smoothing when using mesh CHM
   chm_smooth = chm_coarse
   # # apply smooth
   # smooth_size = 7

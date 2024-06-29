@@ -13,16 +13,16 @@ FIELD_BOUNDARIES_DIR = "/ofo-share/str-disp_drone-data-v2/field-site-boundaries/
 
 #### Processing ####
 
-site = "lassic"
+site = "delta"
 
 
 # load DTM
-dtm_file = list.files(PHOTOGRAMMETRY_OUTPUTS_DIR, pattern = paste0(site, "_\\d{8}T\\d{4}_dtm-ptcloud\\.tif"), full.names = TRUE)
+dtm_file = list.files(PHOTOGRAMMETRY_OUTPUTS_DIR, pattern = paste0(site, "_\\d{8}T\\d{4}_dtm-ptcloud\\.tif$"), full.names = TRUE)
 if (length(dtm_file) != 1) stop(paste0("DTM file absent or multiple matches for site: ", site))
 
 
 ## get DSM layer from metashape output
-dsm_file = list.files(PHOTOGRAMMETRY_OUTPUTS_DIR, pattern = paste0(site, "_\\d{8}T\\d{4}_dsm-mesh\\.tif"), full.names = TRUE)
+dsm_file = list.files(PHOTOGRAMMETRY_OUTPUTS_DIR, pattern = paste0(site, "_\\d{8}T\\d{4}_dsm-mesh\\.tif$"), full.names = TRUE)
 if (length(dsm_file) != 1) stop(paste0("Mesh-based DSM file absent or multiple matches for site: ", site))
 
 

@@ -7,14 +7,10 @@ import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-import matplotlib.pyplot as plt
-
-# Contributed library imports
-import numpy as np
-from imageio import imread
 
 # Imports from the constants
-sys.path.append("../..")
+constants_dir = str(Path(Path(__file__).parent, "..").resolve())
+sys.path.append(constants_dir)
 from constants import (
     FOLDER_TO_CITYSCAPES_SCRIPT,
     MMSEG_PYTHON,
@@ -27,17 +23,24 @@ from constants import (
     get_mmseg_style_training_folder,
     get_render_folder,
     get_subset_images_folder,
-    get_training_chips_folder,
+    get_ortho_training_data_folder,
     get_work_dir,
 )
 
 
-def train_model(mission_type, training_sites, run_ID):
+def train_model(mission_type, training_sites, run_ID, data_dir, include_snags):
+    # Get folder path for agregated images and labels
     aggregated_images_folder = get_aggregated_images_folder(
-        training_sites=training_sites, mission_type=mission_type
+        data_dir=data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
+        include_snags=include_snags,
     )
     aggregated_labels_folder = get_aggregated_labels_folder(
-        training_sites=training_sites, mission_type=mission_type
+        data_dir=data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
+        include_snags=include_snags,
     )
 
     # We need to merge all the imagery together
@@ -129,28 +132,48 @@ def train_model(mission_type, training_sites, run_ID):
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument(
-        "--mission-types", nargs="+", default=("ortho", "MV-HN", "MV-LO")
+        "--mission-types",
+        nargs="+",
+        default=("ortho", "MV-HN", "MV-LO"),
+        help="Which type of data to use for the model",
     )
-    parser.add_argument("--run-IDs", nargs="+", default=("00", "01", "02"))
+    parser.add_argument(
+        "--run-IDs",
+        nargs="+",
+        default=("00",),
+        help="Train a model with each of these tags for each configuration",
+    )
+    parser.add_argument(
+        "--training-site-sets",
+        nargs="+",
+        default=[
+            ["chips", "delta", "lassic", "valley"],
+            ["chips", "delta", "lassic"],
+            ["chips", "delta", "valley"],
+            ["chips", "lassic", "valley"],
+            ["delta", "lassic", "valley"],
+        ],
+        help="Train one model for each set of training sites in the list",
+    )
+    parser.add_argument("--include-snags", action="store_true")
+    parser.add_argument("--data-dir")
+
     args = parser.parse_args()
 
     return args
 
 
-ALL_TRAINING_SITES = (
-    ["chips", "delta", "lassic"],
-    ["chips", "delta", "valley"],
-    ["chips", "lassic", "valley"],
-    ["delta", "lassic", "valley"],
-)
+if __name__ == "__main__":
 
-args = parse_args()
+    args = parse_args()
 
-for run_ID in args.run_IDs:
-    for training_sites in ALL_TRAINING_SITES:
-        for mission_type in args.mission_types:
-            train_model(
-                mission_type=mission_type,
-                training_sites=training_sites,
-                run_ID=run_ID,
-            )
+    for run_ID in args.run_IDs:
+        for training_site_set in args.training_site_sets:
+            for mission_type in args.mission_types:
+                train_model(
+                    data_dir=args.data_dir,
+                    mission_type=mission_type,
+                    training_sites=training_site_set,
+                    run_ID=run_ID,
+                    include_snags=args.include_snags,
+                )

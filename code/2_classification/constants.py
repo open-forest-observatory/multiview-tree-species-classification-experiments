@@ -143,6 +143,42 @@ def get_ortho_training_data_folder(site, data_dir, include_snags, append_vis=Fal
 
 
 # Step 2 functions
+def get_training_sites_str(training_sites):
+    return "_".join(training_sites)
+
+
+def get_formatted_training_data_folder(
+    data_dir, training_sites, mission_type, include_snags
+):
+    training_sites_str = get_training_sites_str(training_sites)
+    return Path(
+        data_dir,
+        "formatted_training_data",
+        mission_type,
+        f"{training_sites_str}_{'with_snags' if include_snags else 'without_snags'}",
+    )
+
+
+def get_aggregated_labels_folder(data_dir, training_sites, mission_type, include_snags):
+    training_data_folder = get_formatted_training_data_folder(
+        data_dir=data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
+        include_snags=include_snags,
+    )
+    return Path(training_data_folder, "labels")
+
+
+def get_aggregated_images_folder(data_dir, training_sites, mission_type, include_snags):
+    training_data_folder = get_formatted_training_data_folder(
+        data_dir=data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
+        include_snags=include_snags,
+    )
+    return Path(training_data_folder, "images")
+
+
 # Step 3 functions
 # Step 4 functions
 # Step 5 functions
@@ -277,36 +313,6 @@ def get_labels_vis_folder(site_name, mission_type):
         "rendered_labels_vis",
         mission_type,
     )
-
-
-def get_training_sites_str(training_sites):
-    return "_".join(training_sites)
-
-
-def get_formatted_training_data_folder(training_sites, mission_type):
-    training_sites_str = get_training_sites_str(training_sites)
-    return Path(
-        DATA_ROOT,
-        "models",
-        "multi_site",
-        mission_type + "_" + training_sites_str,
-        "formatted_training_data",
-    )
-
-
-def get_aggregated_labels_folder(training_sites, mission_type):
-    training_data_folder = get_formatted_training_data_folder(
-        training_sites,
-        mission_type=mission_type,
-    )
-    return Path(training_data_folder, "labels")
-
-
-def get_aggregated_images_folder(training_sites, mission_type):
-    training_data_folder = get_formatted_training_data_folder(
-        training_sites, mission_type=mission_type
-    )
-    return Path(training_data_folder, "images")
 
 
 def get_work_dir(training_sites, mission_type, run_ID="00"):

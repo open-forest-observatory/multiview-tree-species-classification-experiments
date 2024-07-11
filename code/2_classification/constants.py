@@ -28,12 +28,10 @@ INFERENCE_SCRIPT = Path(MMSEGMENTATION_FOLDER, "tools", "inference.py")
 # Important folders
 # TODO make this work for notebooks as well if needed
 PROJECT_ROOT = Path(__file__, "..", "..", "..").resolve()
-DATA_ROOT = Path(PROJECT_ROOT, "data")
-VIS_ROOT = Path(PROJECT_ROOT, "vis")
+DEFAULT_DATA_DIR = Path(PROJECT_ROOT, "data")
+DEFAULT_VIS_DIR = Path(PROJECT_ROOT, "vis")
 # SCRATCH_ROOT = Path(Path.home(), "scratch", "organized_str_disp_MVMT_experiments")
 
-# Ground truth information
-LABELS_FILENAME = Path(DATA_ROOT, "field_ref", "crown_labels.gpkg")
 # LABELS_FILENAME = Path(
 #    "/ofo-share/scratch-derek/organized-str-disp-MVMT-experiments/field_ref/crowns_drone_w_field_data_updated_nosnags.gpkg"
 # )
@@ -71,7 +69,37 @@ AGGREGATE_IMAGE_SCALE = 1
 GROUND_WEIGHT_POLYGON_LABELING = 0.01
 
 
-def get_IDs_to_labels(with_ground=False):
+# Step 1 functions
+def convert_short_site_name_to_long(short_site_name):
+    """"""
+    return {
+        "chips": "chips_20240621T0429",
+        "delta": "delta_20240617T2314",
+        "lassic": "lassic_20240621T0430",
+        "valley": "valley_20240607T2022",
+    }[short_site_name]
+
+
+def get_labels_filename(data_dir, include_snag_class=True):
+    """Path to the groundtruth labeling"""
+    if include_snag_class:
+        # Ground truth information
+        labels_filename = Path(
+            data_dir,
+            "predicted-treecrowns-w-field-data",
+            "predicted-treecrowns-w-field-data-cleaned_david.gpkg",
+        )
+    else:
+        labels_filename = Path(
+            data_dir,
+            "predicted-treecrowns-w-field-data",
+            "predicted-treecrowns-w-field-data-cleaned-snagsremoved_david.gpkg",
+        )
+
+    return labels_filename
+
+
+def get_IDs_to_labels(include_snag_class=True):
     IDs_to_labels = {
         0: "ABCO",
         1: "CADE",
@@ -79,14 +107,49 @@ def get_IDs_to_labels(with_ground=False):
         3: "PIPJ",
         4: "PSME",
     }
-    if with_ground:
-        IDs_to_labels[5] = "ground"
+    if include_snag_class:
+        IDs_to_labels[5] = "SNAG"
 
     return IDs_to_labels
 
 
-def get_unlabeled_crowns_file(site):
-    return Path(DATA_ROOT, "field_ref", "unlabeled_full_site_crowns", f"{site}.gpkg")
+def get_ortho_filename(site, data_dir, mesh_dsm_ortho=True):
+    long_site_name = convert_short_site_name_to_long(site)
+
+    return Path(
+        data_dir,
+        "photogrammetry",
+        "outputs",
+        (
+            f"{long_site_name}_ortho_dsm-mesh.tif"
+            if mesh_dsm_ortho
+            else f"{long_site_name}_ortho_dsm-pointcloud.tif"
+        ),
+    )
+
+
+def get_ortho_training_data_folder(site, data_dir, include_snags, append_vis=False):
+    training_data_folder = Path(
+        data_dir,
+        "2_classification",
+        "ortho_training_data",
+        "with_snags" if include_snags else "no_snags",
+        site,
+    )
+
+    if append_vis:
+        return Path(training_data_folder, "vis")
+    return training_data_folder
+
+
+# Step 2 functions
+# Step 3 functions
+# Step 4 functions
+# Step 5 functions
+
+
+def get_unlabeled_crowns_file(site, data_dir):
+    return Path(data_dir, "predicted-treecrowns", f"{site}.gpkg")
 
 
 def get_image_folder(site_name, mission_type=None):
@@ -144,16 +207,6 @@ def get_labeled_mesh_filename(site_name):
         "03_training_data",
         "MV",
         "labeled_mesh.ply",
-    )
-
-
-def get_training_chips_folder(training_site):
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        training_site,
-        "03_training_data",
-        "ortho",
     )
 
 
@@ -385,16 +438,6 @@ def get_aggregated_raster_pred_file(training_sites, inference_site, run_ID):
         "05_processed_predictions",
         f"{training_sites_str}_model_ortho_aggregated_raster",
         f"run_{run_ID}.tif",
-    )
-
-
-def get_training_raster_filename(training_site):
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        training_site,
-        "02_photogrammetry",
-        f"{training_site}_ortho.tif",
     )
 
 

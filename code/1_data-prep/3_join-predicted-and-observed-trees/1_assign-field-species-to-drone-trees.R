@@ -4,16 +4,23 @@ library(tidyverse)
 library(sf)
 library(units)
 
-data_dir = readLines("data_dir.txt", n = 1)
 
-source("3_join-predicted-and-observed-trees/lib/match-trees.R")
+### Setup
+
+source("code/1_data-prep/3_join-predicted-and-observed-trees/lib/match-trees.R")
+
+FIELD_STEMMAP_FILE = "/ofo-share/str-disp_drone-data-v2/field-reference/stems_v4.gpkg"
+FIELD_STEMMAP_BOUNDS_FILE = "/ofo-share/str-disp_drone-data-v2/field-reference/plot_bounds_v4.gpkg"
+PREDICTED_TREETOPS_DIR = "/ofo-share/str-disp_drone-data-v2/predicted-treetops/"
+PREDICTED_TREECROWNS_DIR = "/ofo-share/str-disp_drone-data-v2/predicted-treecrowns/"
+PREDICTED_TREECROWNS_W_FIELD_DATA_FILE = "/ofo-share/str-disp_drone-data-v2/predicted-treecrowns-w-field-data/predicted-treecrowns-w-field-data.gpkg"
 
 # Load field trees
-trees_field = st_read(file.path(data_dir, "1_field-data", "field-reference-trees", "stems_v4.gpkg")) |>
+trees_field = st_read(FIELD_STEMMAP_FILE) |>
   st_transform(3310)
 
 # Load field perims
-perims_field = st_read(file.path(data_dir, "1_field-data", "field-reference-trees", "plot_bounds_v4.gpkg")) |>
+perims_field = st_read(FIELD_STEMMAP_BOUNDS_FILE) |>
   st_transform(3310)
 
 
@@ -28,6 +35,7 @@ trees_field = trees_field |>
         pct_current_green = ifelse(str_detect(species, regex("snag", ignore_case = TRUE)), 0, pct_current_green)) |>
   # assume that if percent current green is NA, it's 0
   mutate(pct_current_green = ifelse(is.na(pct_current_green) | pct_current_green == "NA", 0, pct_current_green))
+
 
 # Make a data frame of all the field stem maps we want, so we can loop through it
 stemmaps = data.frame(stem_map_name = c("Chips_1", "Chips_1_ABCO", "Chips_2", "Delta_1", "Delta_2", "Delta_3", "Valley_1", "Lassic_1", "Lassic_2"),
@@ -50,7 +58,8 @@ for (i in 1:nrow(stemmaps)) {
       filter(stem_map_name == stem_map_name_foc)
 
   # Load drone trees (points and crowns) and crop to focal area around field reference trees
-  trees_drone = st_read(file.path(data_dir, "out_ttops", paste0(fire_name_foc, ".gpkg"))) |>
+  treetops_file = file.path(PREDICTED_TREETOPS_DIR, paste0(fire_name_foc, ".gpkg"))
+  trees_drone = st_read(treetops_file) |>
     st_transform(3310)
 
   ## Get the drone tree dataset into the expected format (column names, etc)
@@ -59,7 +68,8 @@ for (i in 1:nrow(stemmaps)) {
            height = Z)
 
   # Load drone crowns
-  crowns_drone = st_read(file.path(data_dir, "out_crowns", paste0(fire_name_foc, ".gpkg"))) |>
+  crowns_file = file.path(PREDICTED_TREECROWNS_DIR, paste0(fire_name_foc, ".gpkg"))
+  crowns_drone = st_read(crowns_file) |>
     st_transform(3310) |>
     select(predicted_tree_id = treeID)
 
@@ -110,4 +120,4 @@ for (i in 1:nrow(stemmaps)) {
 
 }
 
-st_write(crowns_drone_w_field_data, file.path(data_dir, "out_crowns-w-field-labels", "crowns_drone_w_field_data.gpkg"), delete_dsn = TRUE)
+st_write(crowns_drone_w_field_data, PREDICTED_TREECROWNS_W_FIELD_DATA_FILE, delete_dsn = TRUE)

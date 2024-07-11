@@ -14,7 +14,7 @@ crowns = st_read(PREDICTED_TREECROWNS_W_FIELD_DATA_FILE)
 
 # merge species that are functionally the same, and drop species that are very rare
 crowns = crowns |>
-  filter(!(species_observed %in% c("QUEV"))) |>
+  filter(!(species_observed %in% c("QUEV", "QUCC"))) |>
   mutate(species_observed = recode(species_observed,
                                    "PIPO" = "PIPJ",
                                    "PIJE" = "PIPJ")) |>

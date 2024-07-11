@@ -4,11 +4,17 @@ from geograypher.segmentation import assemble_tiled_predictions
 from geograypher.utils.geospatial import get_overlap_raster
 from geograypher.utils.prediction_metrics import compute_and_show_cf
 
-from constants import (ALL_SITE_NAMES, LABELS_COLUMN, LABELS_FILENAME,
-                       get_aggregated_raster_pred_file,
-                       get_figure_export_confusion_matrix_file,
-                       get_IDs_to_labels, get_npy_export_confusion_matrix_file,
-                       get_prediction_folder, get_training_raster_filename)
+from constants import (
+    ALL_SITE_NAMES,
+    LABELS_COLUMN,
+    LABELS_FILENAME,
+    get_aggregated_raster_pred_file,
+    get_figure_export_confusion_matrix_file,
+    get_IDs_to_labels,
+    get_npy_export_confusion_matrix_file,
+    get_prediction_folder,
+    get_training_raster_filename,
+)
 
 IDs_to_labels = get_IDs_to_labels()
 num_classes = len(IDs_to_labels)

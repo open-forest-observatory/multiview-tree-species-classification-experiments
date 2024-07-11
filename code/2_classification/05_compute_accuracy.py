@@ -8,8 +8,11 @@ import numpy as np
 from geograypher.utils.prediction_metrics import compute_comprehensive_metrics
 from sklearn.metrics import ConfusionMatrixDisplay
 
-from constants import (ALL_SITE_NAMES, get_IDs_to_labels,
-                       get_npy_export_confusion_matrix_file)
+from constants import (
+    ALL_SITE_NAMES,
+    get_IDs_to_labels,
+    get_npy_export_confusion_matrix_file,
+)
 
 VIS_FOLDER = Path(
     "/ofo-share/scratch-david/multiview-tree-species-classification-experiments-earthvision/vis/total_accuracy"

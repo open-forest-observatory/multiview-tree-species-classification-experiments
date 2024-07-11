@@ -2,10 +2,16 @@ import subprocess
 from argparse import ArgumentParser
 from pathlib import Path
 
-from constants import (ALL_SITE_NAMES, INFERENCE_SCRIPT, MMSEG_PYTHON,
-                       get_image_folder, get_prediction_folder,
-                       get_subset_images_folder, get_training_chips_folder,
-                       get_work_dir)
+from constants import (
+    ALL_SITE_NAMES,
+    INFERENCE_SCRIPT,
+    MMSEG_PYTHON,
+    get_image_folder,
+    get_prediction_folder,
+    get_subset_images_folder,
+    get_training_chips_folder,
+    get_work_dir,
+)
 
 
 def predict_model(

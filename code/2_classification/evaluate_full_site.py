@@ -7,16 +7,24 @@ from geograypher.constants import PRED_CLASS_ID_KEY
 from geograypher.entrypoints import aggregate_images, label_polygons
 from geograypher.utils.prediction_metrics import compute_and_show_cf
 
-from constants import (ALL_SITE_NAMES, LABELS_COLUMN, LABELS_FILENAME,
-                       get_aggregated_face_values_file, get_cameras_filename,
-                       get_DTM_filename,
-                       get_figure_export_confusion_matrix_file,
-                       get_IDs_to_labels, get_image_folder, get_mesh_filename,
-                       get_mesh_transform_filename,
-                       get_npy_export_confusion_matrix_file,
-                       get_predicted_labeled_polygons_file,
-                       get_prediction_folder, get_subfolder_by_mission_type,
-                       get_unlabeled_crowns_file)
+from constants import (
+    ALL_SITE_NAMES,
+    LABELS_COLUMN,
+    LABELS_FILENAME,
+    get_aggregated_face_values_file,
+    get_cameras_filename,
+    get_DTM_filename,
+    get_figure_export_confusion_matrix_file,
+    get_IDs_to_labels,
+    get_image_folder,
+    get_mesh_filename,
+    get_mesh_transform_filename,
+    get_npy_export_confusion_matrix_file,
+    get_predicted_labeled_polygons_file,
+    get_prediction_folder,
+    get_subfolder_by_mission_type,
+    get_unlabeled_crowns_file,
+)
 
 MISSION_TYPE = "MV-LO"
 RUN_ID = "00"

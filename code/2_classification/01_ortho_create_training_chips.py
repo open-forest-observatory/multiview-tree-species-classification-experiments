@@ -6,10 +6,18 @@ import numpy as np
 from geograypher.segmentation import write_chips
 from geograypher.utils.visualization import show_segmentation_labels
 
-from constants import (ALL_SITE_NAMES, CHIP_SIZE, LABELS_COLUMN,
-                       LABELS_FILENAME, TRAINING_IMGS_EXT, TRAINING_STRIDE,
-                       get_IDs_to_labels, get_labels_vis_folder,
-                       get_training_chips_folder, get_training_raster_filename)
+from constants import (
+    ALL_SITE_NAMES,
+    CHIP_SIZE,
+    LABELS_COLUMN,
+    LABELS_FILENAME,
+    TRAINING_IMGS_EXT,
+    TRAINING_STRIDE,
+    get_IDs_to_labels,
+    get_labels_vis_folder,
+    get_training_chips_folder,
+    get_training_raster_filename,
+)
 
 
 def parse_args():

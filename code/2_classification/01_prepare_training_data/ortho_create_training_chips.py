@@ -16,8 +16,8 @@ from constants import (
     get_IDs_to_labels,
     get_labels_filename,
     get_labels_vis_folder,
-    get_ortho_training_data_folder,
     get_ortho_filename,
+    get_ortho_training_data_folder,
 )
 
 

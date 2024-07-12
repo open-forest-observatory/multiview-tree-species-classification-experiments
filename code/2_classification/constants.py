@@ -27,26 +27,13 @@ INFERENCE_SCRIPT = Path(MMSEGMENTATION_FOLDER, "tools", "inference.py")
 
 # Important folders
 # TODO make this work for notebooks as well if needed
-PROJECT_ROOT = Path(__file__, "..", "..", "..").resolve()
-DEFAULT_DATA_DIR = Path(PROJECT_ROOT, "data")
-DEFAULT_VIS_DIR = Path(PROJECT_ROOT, "vis")
-# SCRATCH_ROOT = Path(Path.home(), "scratch", "organized_str_disp_MVMT_experiments")
+# PROJECT_ROOT = Path(__file__, "..", "..", "..").resolve()
+DEFAULT_INPUT_DATA_DIR = "/ofo-share/str-disp_drone-data-v2/"
+DEFAULT_PREDICTION_DATA_DIR = "/ofo-share/str-disp_drone-data-v2/2_classification"
 
-# LABELS_FILENAME = Path(
-#    "/ofo-share/scratch-derek/organized-str-disp-MVMT-experiments/field_ref/crowns_drone_w_field_data_updated_nosnags.gpkg"
-# )
 LABELS_COLUMN = "species_observed"
 
 ALL_SITE_NAMES = ["chips", "delta", "lassic", "valley"]
-
-# Conversion between short and long names
-LONG_SITE_NAME_DICT = {
-    "valley": "ValleyA",
-    "chips": "ChipsB",
-    "delta": "DeltaB",
-    "lassic": "Lassic",
-}
-
 
 TRAINING_IMGS_EXT = ".png"
 INFERENCE_IMGS_EXT = ".png"
@@ -80,18 +67,18 @@ def convert_short_site_name_to_long(short_site_name):
     }[short_site_name]
 
 
-def get_labels_filename(data_dir, include_snag_class=True):
+def get_labels_filename(input_data_dir, include_snag_class=True):
     """Path to the groundtruth labeling"""
     if include_snag_class:
         # Ground truth information
         labels_filename = Path(
-            data_dir,
+            input_data_dir,
             "predicted-treecrowns-w-field-data",
             "predicted-treecrowns-w-field-data-cleaned_david.gpkg",
         )
     else:
         labels_filename = Path(
-            data_dir,
+            input_data_dir,
             "predicted-treecrowns-w-field-data",
             "predicted-treecrowns-w-field-data-cleaned-snagsremoved_david.gpkg",
         )
@@ -113,27 +100,21 @@ def get_IDs_to_labels(include_snag_class=True):
     return IDs_to_labels
 
 
-def get_ortho_filename(site, data_dir, mesh_dsm_ortho=True):
+def get_ortho_filename(site, input_data_dir):
     long_site_name = convert_short_site_name_to_long(site)
 
     return Path(
-        data_dir,
+        input_data_dir,
         "photogrammetry",
         "outputs",
-        (
-            f"{long_site_name}_ortho_dsm-mesh.tif"
-            if mesh_dsm_ortho
-            else f"{long_site_name}_ortho_dsm-pointcloud.tif"
-        ),
+        f"{long_site_name}_ortho_dsm-mesh.tif",
     )
 
 
-def get_ortho_training_data_folder(site, data_dir, include_snags, append_vis=False):
+def get_ortho_training_data_folder(site, prediction_data_dir, append_vis=False):
     training_data_folder = Path(
-        data_dir,
-        "2_classification",
+        prediction_data_dir,
         "ortho_training_data",
-        "with_snags" if include_snags else "no_snags",
         site,
     )
 
@@ -147,36 +128,53 @@ def get_training_sites_str(training_sites):
     return "_".join(training_sites)
 
 
-def get_formatted_training_data_folder(
-    data_dir, training_sites, mission_type, include_snags
-):
+def get_training_data_folder(prediction_data_dir, training_sites, mission_type):
+    """Folder where model inputs and results go"""
     training_sites_str = get_training_sites_str(training_sites)
     return Path(
-        data_dir,
-        "formatted_training_data",
-        mission_type,
-        f"{training_sites_str}_{'with_snags' if include_snags else 'without_snags'}",
+        prediction_data_dir,
+        "training_data",
+        f"{mission_type}_{training_sites_str}",
     )
 
 
-def get_aggregated_labels_folder(data_dir, training_sites, mission_type, include_snags):
-    training_data_folder = get_formatted_training_data_folder(
-        data_dir=data_dir,
+def get_aggregated_labels_folder(prediction_data_dir, training_sites, mission_type):
+    training_data_folder = get_training_data_folder(
+        prediction_data_dir=prediction_data_dir,
         training_sites=training_sites,
         mission_type=mission_type,
-        include_snags=include_snags,
     )
     return Path(training_data_folder, "labels")
 
 
-def get_aggregated_images_folder(data_dir, training_sites, mission_type, include_snags):
-    training_data_folder = get_formatted_training_data_folder(
-        data_dir=data_dir,
+def get_aggregated_images_folder(prediction_data_dir, training_sites, mission_type):
+    training_data_folder = get_training_data_folder(
+        prediction_data_dir=prediction_data_dir,
         training_sites=training_sites,
         mission_type=mission_type,
-        include_snags=include_snags,
     )
     return Path(training_data_folder, "images")
+
+
+def get_work_dir(prediction_data_dir, training_sites, mission_type):
+    """
+    Where to train the model
+    """
+    training_data_folder = get_training_data_folder(
+        prediction_data_dir=prediction_data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
+    )
+    return Path(training_data_folder, "work_dir")
+
+
+def get_mmseg_style_training_folder(prediction_data_dir, training_sites, mission_type):
+    training_data_folder = get_training_data_folder(
+        prediction_data_dir=prediction_data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
+    )
+    return Path(training_data_folder, f"mmseg_formatted_data")
 
 
 # Step 3 functions
@@ -313,21 +311,6 @@ def get_labels_vis_folder(site_name, mission_type):
         "rendered_labels_vis",
         mission_type,
     )
-
-
-def get_work_dir(training_sites, mission_type, run_ID="00"):
-    training_data_folder = get_formatted_training_data_folder(
-        training_sites, mission_type=mission_type
-    ).parent
-    return Path(training_data_folder, f"work_dir_{run_ID}")
-
-
-def get_mmseg_style_training_folder(training_sites, mission_type):
-    training_data_folder = get_formatted_training_data_folder(
-        training_sites, mission_type=mission_type
-    )
-    named_folder = training_data_folder.parts[-2]
-    return Path(training_data_folder, f"{named_folder}_mmseg_style")
 
 
 def get_inference_image_folder(site_name):

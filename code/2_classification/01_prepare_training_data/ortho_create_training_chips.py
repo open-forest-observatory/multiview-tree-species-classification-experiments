@@ -1,21 +1,23 @@
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-import geopandas as gpd
-import numpy as np
 from geograypher.predictors import write_chips
 from geograypher.utils.visualization import show_segmentation_labels
 
+# Import from constants file
+constants_dir = str(Path(Path(__file__).parent, "..").resolve())
+sys.path.append(constants_dir)
 from constants import (
     ALL_SITE_NAMES,
     CHIP_SIZE,
-    DEFAULT_DATA_DIR,
+    DEFAULT_INPUT_DATA_DIR,
+    DEFAULT_PREDICTION_DATA_DIR,
     LABELS_COLUMN,
     TRAINING_IMGS_EXT,
     TRAINING_STRIDE,
     get_IDs_to_labels,
     get_labels_filename,
-    get_labels_vis_folder,
     get_ortho_filename,
     get_ortho_training_data_folder,
 )
@@ -25,10 +27,9 @@ def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--site-names", nargs="+", default=ALL_SITE_NAMES)
     parser.add_argument("--just-vis", action="store_true")
-    parser.add_argument(
-        "--include-snags", action="store_true", default=DEFAULT_DATA_DIR
-    )
-    parser.add_argument("--data-dir", default=DEFAULT_DATA_DIR)
+    parser.add_argument("--input-data-dir", default=DEFAULT_INPUT_DATA_DIR)
+    parser.add_argument("--prediction-data-dir", default=DEFAULT_PREDICTION_DATA_DIR)
+    parser.add_argument("--dont-include-snags", action="store_false")
     args = parser.parse_args()
     return args
 
@@ -37,9 +38,9 @@ if __name__ == "__main__":
     args = parse_args()
     # Get the labeled filename
     labels_filename = get_labels_filename(
-        data_dir=args.data_dir, include_snag_class=args.include_snags
+        input_data_dir=args.input_data_dir,
+        include_snag_class=not args.dont_include_snags,
     )
-    df = gpd.read_file(labels_filename)
     print(f"Using labels from {labels_filename}")
 
     IDs_to_labels = get_IDs_to_labels()
@@ -48,14 +49,15 @@ if __name__ == "__main__":
 
     for site in args.site_names:
         # Get the filenames for each site
-        ortho_filename = get_ortho_filename(site=site, data_dir=args.data_dir)
+        ortho_filename = get_ortho_filename(
+            site=site, input_data_dir=args.input_data_dir
+        )
         labeled_chips_folder = get_ortho_training_data_folder(
-            site=site, include_snags=args.include_snags, data_dir=args.data_dir
+            site=site, prediction_data_dir=args.prediction_data_dir
         )
         labeled_chips_vis_folder = get_ortho_training_data_folder(
             site=site,
-            include_snags=args.include_snags,
-            data_dir=args.data_dir,
+            prediction_data_dir=args.prediction_data_dir,
             append_vis=True,
         )
 

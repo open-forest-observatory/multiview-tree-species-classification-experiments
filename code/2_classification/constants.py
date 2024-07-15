@@ -206,6 +206,84 @@ def get_ortho_prediction_data_folder(site, prediction_data_dir, append_vis=False
 
 
 # Step 4 functions
+def get_predicted_output_base_file(
+    prediction_site, training_sites, prediction_data_dir
+):
+    training_sites_str = get_training_sites_str(training_sites)
+    return Path(
+        prediction_data_dir,
+        "accuracy_evaluation",
+        f"{training_sites_str}_model",
+        prediction_site,
+    )
+
+
+def get_figure_export_confusion_matrix_file(
+    prediction_site,
+    training_sites,
+    mission_type,
+    run_ID,
+    prediction_data_dir,
+):
+    predicted_output_base_file = get_predicted_output_base_file(
+        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
+    )
+
+    return Path(
+        predicted_output_base_file,
+        mission_type,
+        "cf_matrix",
+        f"run_{run_ID}.svg",
+    )
+
+
+def get_npy_export_confusion_matrix_file(
+    prediction_site,
+    training_sites,
+    mission_type,
+    run_ID,
+    prediction_data_dir,
+):
+    predicted_output_base_file = get_predicted_output_base_file(
+        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
+    )
+
+    return Path(
+        predicted_output_base_file,
+        mission_type,
+        "cf_matrix",
+        f"run_{run_ID}.npy",
+    )
+
+
+def get_aggregated_face_values_file(
+    prediction_site, training_sites, mission_type, run_ID, prediction_data_dir
+):
+    predicted_output_base_file = get_predicted_output_base_file(
+        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
+    )
+
+    return Path(
+        predicted_output_base_file,
+        mission_type,
+        "aggregated_face_values",
+        f"run_{run_ID}.npy",
+    )
+
+
+def get_aggregated_raster_pred_file(
+    training_sites, inference_site, run_ID, prediction_data_dir
+):
+    training_sites_str = get_training_sites_str(training_sites=training_sites)
+    return Path(
+        prediction_data_dir,
+        "ortho_raster_predictions",
+        f"{training_sites_str}_model_ortho_aggregated_raster",
+        inference_site,
+        f"run_{run_ID}.tif",
+    )
+
+
 # Step 5 functions
 
 
@@ -350,32 +428,6 @@ def get_inference_image_folder(site_name):
     )
 
 
-def get_predicted_output_base_file(prediction_site, training_sites):
-    training_sites_str = get_training_sites_str(training_sites)
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        prediction_site,
-        "05_processed_predictions",
-        f"{training_sites_str}_model",
-    )
-
-
-def get_aggregated_face_values_file(
-    prediction_site, training_sites, mission_type, run_ID
-):
-    predicted_output_base_file = get_predicted_output_base_file(
-        prediction_site, training_sites
-    )
-
-    return Path(
-        predicted_output_base_file,
-        mission_type,
-        "aggregated_face_values",
-        f"run_{run_ID}.npy",
-    )
-
-
 def get_predicted_labeled_polygons_file(
     prediction_site, training_sites, mission_type, run_ID
 ):
@@ -391,36 +443,6 @@ def get_predicted_labeled_polygons_file(
     )
 
 
-def get_figure_export_confusion_matrix_file(
-    prediction_site, training_sites, mission_type, run_ID
-):
-    predicted_output_base_file = get_predicted_output_base_file(
-        prediction_site, training_sites
-    )
-
-    return Path(
-        predicted_output_base_file,
-        mission_type,
-        "cf_matrix",
-        f"run_{run_ID}.svg",
-    )
-
-
-def get_npy_export_confusion_matrix_file(
-    prediction_site, training_sites, mission_type, run_ID
-):
-    predicted_output_base_file = get_predicted_output_base_file(
-        prediction_site, training_sites
-    )
-
-    return Path(
-        predicted_output_base_file,
-        mission_type,
-        "cf_matrix",
-        f"run_{run_ID}.npy",
-    )
-
-
 def get_predicted_vector_labels_filename(prediction_site, training_sites):
     return get_predicted_output_base_file(
         prediction_site=prediction_site, training_sites=training_sites
@@ -431,18 +453,6 @@ def get_numpy_export_faces_texture_filename(prediction_site, training_sites):
     return get_predicted_output_base_file(
         prediction_site=prediction_site, training_sites=training_sites
     ).with_suffix(".npy")
-
-
-def get_aggregated_raster_pred_file(training_sites, inference_site, run_ID):
-    training_sites_str = get_training_sites_str(training_sites=training_sites)
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        inference_site,
-        "05_processed_predictions",
-        f"{training_sites_str}_model_ortho_aggregated_raster",
-        f"run_{run_ID}.tif",
-    )
 
 
 def get_inference_raster_filename(inference_site):

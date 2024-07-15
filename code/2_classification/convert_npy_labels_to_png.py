@@ -1,11 +1,10 @@
 from pathlib import Path
 
 import numpy as np
+from constants import ALL_SITE_NAMES, get_render_folder
 from geograypher.utils.files import ensure_containing_folder
 from imageio import imwrite
 from tqdm import tqdm
-
-from constants import ALL_SITE_NAMES, get_render_folder
 
 for site_name in ALL_SITE_NAMES:
     render_folder = get_render_folder(site_name)

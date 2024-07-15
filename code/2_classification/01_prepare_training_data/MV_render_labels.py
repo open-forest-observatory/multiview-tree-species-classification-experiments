@@ -1,8 +1,5 @@
 from argparse import ArgumentParser
 
-from geograypher.entrypoints import render_labels
-from geograypher.utils.visualization import show_segmentation_labels
-
 from constants import (
     ALL_SITE_NAMES,
     GROUND_HEIGHT_THRESHOLD,
@@ -20,6 +17,8 @@ from constants import (
     get_render_folder,
     get_subset_images_folder,
 )
+from geograypher.entrypoints import render_labels
+from geograypher.utils.visualization import show_segmentation_labels
 
 
 def parse_args():

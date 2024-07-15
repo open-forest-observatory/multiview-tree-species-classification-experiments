@@ -3,10 +3,6 @@ import argparse
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
-from geograypher.constants import PRED_CLASS_ID_KEY
-from geograypher.entrypoints import aggregate_images, label_polygons
-from geograypher.utils.prediction_metrics import compute_and_show_cf
-
 from constants import (
     ALL_SITE_NAMES,
     LABELS_COLUMN,
@@ -25,6 +21,9 @@ from constants import (
     get_subfolder_by_mission_type,
     get_unlabeled_crowns_file,
 )
+from geograypher.constants import PRED_CLASS_ID_KEY
+from geograypher.entrypoints import aggregate_images, label_polygons
+from geograypher.utils.prediction_metrics import compute_and_show_cf
 
 MISSION_TYPE = "MV-LO"
 RUN_ID = "00"

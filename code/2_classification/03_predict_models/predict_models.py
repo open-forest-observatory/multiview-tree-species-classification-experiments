@@ -1,47 +1,109 @@
+import shutil
 import subprocess
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
+from geograypher.predictors.ortho_segmentor import write_chips
+from geograypher.utils.visualization import show_segmentation_labels
+
+constants_dir = str(Path(Path(__file__).parent, "..").resolve())
+sys.path.append(constants_dir)
 from constants import (
     ALL_SITE_NAMES,
+    CHIP_SIZE,
+    DEFAULT_INPUT_DATA_DIR,
+    DEFAULT_PREDICTION_DATA_DIR,
     INFERENCE_SCRIPT,
+    INFERENCE_STRIDE,
     MMSEG_PYTHON,
-    get_image_folder,
+    get_IDs_to_labels,
+    get_labels_filename,
+    get_ortho_filename,
+    get_ortho_prediction_data_folder,
     get_prediction_folder,
     get_subset_images_folder,
-    get_training_chips_folder,
     get_work_dir,
 )
 
 
 def predict_model(
-    mission_type, training_sites, test_site, run_ID, batch_size, full_site=False
+    mission_type,
+    training_sites,
+    test_site,
+    run_ID,
+    batch_size,
+    prediction_data_dir,
+    input_data_dir,
+    full_site=False,
 ):
+    if mission_type == "ortho":
+        ortho_filename = get_ortho_filename(
+            site=test_site, input_data_dir=input_data_dir
+        )
+        input_images = get_ortho_prediction_data_folder(
+            site=test_site, prediction_data_dir=prediction_data_dir
+        )
+        # The first step is to chip the images
+        # If full site, chip the whole file
+        # if not, we need to just get an ROI
+        if full_site:
+            # No ROI, just use everything
+            ROI_file = None
+        else:
+            # including the snag class will give a slightly larger ROI
+            ROI_file = get_labels_filename(
+                input_data_dir=input_data_dir, include_snag_class=True
+            )
+
+        write_chips(
+            raster_file=ortho_filename,
+            output_folder=input_images,
+            chip_size=CHIP_SIZE,
+            chip_stride=INFERENCE_STRIDE,
+            ROI_file=ROI_file,
+            remove_old=True,
+        )
+    else:
+        if full_site:
+            pass
+        else:
+            pass
+        input_images = get_subset_images_folder(test_site, mission_type=mission_type)
+        # Append the last part of the input images folder so the name matches
+        # TODO figure out whether this is entirely required
+        prediction_folder = Path(prediction_folder, input_images.parts[-1])
+
+    # Get folder to write predictions to
     prediction_folder = get_prediction_folder(
         prediction_site=test_site,
         training_sites=training_sites,
         mission_type=mission_type,
         run_ID=run_ID,
+        prediction_data_dir=prediction_data_dir,
     )
-    if mission_type == "ortho":
-        input_images = Path(get_training_chips_folder(training_site=test_site), "imgs")
-        extension = ".png"
-    elif full_site:
-        input_images = get_image_folder(test_site, mission_type)
-        extension = ".JPG"
-    else:
-        input_images = get_subset_images_folder(test_site, mission_type=mission_type)
-        # Append the last part of the input images folder so the name matches
-        # TODO figure out whether this is entirely required
-        prediction_folder = Path(prediction_folder, input_images.parts[-1])
-        extension = ".JPG"
-
-    work_dir = get_work_dir(
-        training_sites=training_sites, mission_type=mission_type, run_ID=run_ID
-    )
-    config_file = list(Path(work_dir).glob("*py"))[0]
-    checkpoint_file = Path(work_dir, "iter_10000.pth")
+    # If the prediction folder exists alread, remove it
+    if prediction_folder.is_dir():
+        shutil.rmtree(prediction_folder)
+    # Make the prediction folder
     prediction_folder.mkdir(parents=True, exist_ok=True)
+
+    # Get folder where model is
+    work_dir = get_work_dir(
+        prediction_data_dir=prediction_data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
+        run_ID=run_ID,
+    )
+    # Get the config file
+    config_file = list(Path(work_dir).glob("*py"))[0]
+    # TODO this assumes we're training for 10k iters, we should make this more flexible
+    checkpoint_file = Path(work_dir, "iter_10000.pth")
+    # Extension of the images we're going to do inference on
+    # TODO we should make this more robust
+    extension = ".JPG"
+
+    # Create the command that we're going to run
     run_str = (
         f"{MMSEG_PYTHON} {INFERENCE_SCRIPT} {config_file} "
         + f"{checkpoint_file} {input_images} {prediction_folder} --batch-size {batch_size}"
@@ -51,6 +113,16 @@ def predict_model(
     subprocess.run(
         run_str,
         shell=True,
+    )
+
+    # Visualize a subset of the predictions
+    vis_folder = Path(prediction_folder.parent, prediction_folder.parts[-1] + "_vis")
+    IDs_to_labels = get_IDs_to_labels()
+    show_segmentation_labels(
+        label_folder=prediction_folder,
+        image_folder=input_images,
+        savefolder=vis_folder,
+        IDs_to_labels=IDs_to_labels,
     )
 
 
@@ -85,6 +157,16 @@ def parse_args():
         action="store_true",
         help="Whether to run inference on the full site or just the region near the labeled polygons",
     )
+    parser.add_argument(
+        "--input-data-dir",
+        default=DEFAULT_INPUT_DATA_DIR,
+        help="Where to find the input data, e.g. images, photogrammetry, field reference",
+    )
+    parser.add_argument(
+        "--prediction-data-dir",
+        default=DEFAULT_PREDICTION_DATA_DIR,
+        help="Where to find and update ML prediction data",
+    )
 
     args = parser.parse_args()
 
@@ -104,4 +186,6 @@ if __name__ == "__main__":
                     run_ID=run_ID,
                     batch_size=args.batch_size,
                     full_site=args.full_site,
+                    prediction_data_dir=args.prediction_data_dir,
+                    input_data_dir=args.input_data_dir,
                 )

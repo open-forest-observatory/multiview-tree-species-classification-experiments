@@ -11,6 +11,7 @@ from pathlib import Path
 constants_dir = str(Path(Path(__file__).parent, "..").resolve())
 sys.path.append(constants_dir)
 from constants import (
+    DEFAULT_INPUT_DATA_DIR,
     DEFAULT_PREDICTION_DATA_DIR,
     FOLDER_TO_CITYSCAPES_SCRIPT,
     MMSEG_PYTHON,
@@ -92,7 +93,9 @@ def train_model(
 
     # Format the data according to how MMSEG expects
     mmseg_style_training_folder = get_mmseg_style_training_folder(
-        training_sites=training_sites, mission_type=mission_type
+        prediction_data_dir=args.prediction_data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
     )
     # Build the command string
     formatting_run_str = (
@@ -109,7 +112,10 @@ def train_model(
 
     # Get the work dir to save the model
     work_dir = get_work_dir(
-        training_sites=training_sites, mission_type=mission_type, run_ID=run_ID
+        prediction_data_dir=args.prediction_data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
+        run_ID=run_ID,
     )
     # Identify the config file as the only python file in the
     config_file = list(Path(mmseg_style_training_folder).glob("*py"))[0]
@@ -148,7 +154,7 @@ def parse_args():
     )
     parser.add_argument(
         "--input-data-dir",
-        default=DEFAULT_PREDICTION_DATA_DIR,
+        default=DEFAULT_INPUT_DATA_DIR,
         help="Where to find the input data, e.g. images, photogrammetry, field reference",
     )
     parser.add_argument(

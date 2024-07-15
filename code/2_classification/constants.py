@@ -156,7 +156,7 @@ def get_aggregated_images_folder(prediction_data_dir, training_sites, mission_ty
     return Path(training_data_folder, "images")
 
 
-def get_work_dir(prediction_data_dir, training_sites, mission_type):
+def get_work_dir(prediction_data_dir, training_sites, mission_type, run_ID):
     """
     Where to train the model
     """
@@ -165,7 +165,7 @@ def get_work_dir(prediction_data_dir, training_sites, mission_type):
         training_sites=training_sites,
         mission_type=mission_type,
     )
-    return Path(training_data_folder, "work_dir")
+    return Path(training_data_folder, "work_dir", run_ID)
 
 
 def get_mmseg_style_training_folder(prediction_data_dir, training_sites, mission_type):
@@ -174,10 +174,37 @@ def get_mmseg_style_training_folder(prediction_data_dir, training_sites, mission
         training_sites=training_sites,
         mission_type=mission_type,
     )
-    return Path(training_data_folder, f"mmseg_formatted_data")
+    # Get the description (mission_<site names>) tag so the associated config will be named appropriately
+    description = training_data_folder.parts[-1]
+    return Path(training_data_folder, f"{description}_mmseg_formatted_data")
 
 
 # Step 3 functions
+def get_prediction_folder(
+    prediction_site, training_sites, mission_type, run_ID, prediction_data_dir
+):
+    training_sites_str = get_training_sites_str(training_sites=training_sites)
+    return Path(
+        prediction_data_dir,
+        "model_predictions",
+        f"{training_sites_str}_{mission_type}_model",
+        f"run_{run_ID}",
+        prediction_site,
+    )
+
+
+def get_ortho_prediction_data_folder(site, prediction_data_dir, append_vis=False):
+    training_data_folder = Path(
+        prediction_data_dir,
+        "ortho_prediction_data",
+        site,
+    )
+
+    if append_vis:
+        return Path(training_data_folder, "vis")
+    return training_data_folder
+
+
 # Step 4 functions
 # Step 5 functions
 
@@ -320,18 +347,6 @@ def get_inference_image_folder(site_name):
         site_name,
         "03_training_data",
         "images_near_labels",
-    )
-
-
-def get_prediction_folder(prediction_site, training_sites, mission_type, run_ID):
-    training_sites_str = get_training_sites_str(training_sites=training_sites)
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        prediction_site,
-        "04_model_predictions",
-        f"{training_sites_str}_{mission_type}_model",
-        f"run_{run_ID}",
     )
 
 

@@ -123,6 +123,86 @@ def get_ortho_training_data_folder(site, prediction_data_dir, append_vis=False):
     return training_data_folder
 
 
+def get_subfolder_by_mission_type(folder, site_name, mission_type):
+    raise NotImplementedError()
+    subfolders = list(filter(os.path.isdir, list(folder.glob("*"))))
+    if mission_type == "MV-LO":
+        subfolders = list(filter(lambda x: "_120m" not in str(x), subfolders))
+    elif mission_type == "MV-HN":
+        subfolders = list(filter(lambda x: "_120m" in str(x), subfolders))
+    else:
+        raise ValueError(f"Mission type {mission_type} not valid")
+
+    if len(subfolders) != 1:
+        raise ValueError("Subfolders")
+
+    return subfolders[0]
+
+
+def get_image_folder(site_name, input_data_dir, mission_type=None):
+    image_folder = Path(input_data_dir, "imagery-raw", "1_manually-cleaned")
+
+    if mission_type is None:
+        return image_folder
+    return get_subfolder_by_mission_type(
+        image_folder, site_name=site_name, mission_type=mission_type
+    )
+
+
+def get_mesh_filename(site_name, input_data_dir):
+
+    long_site_name = convert_short_site_name_to_long(site_name)
+    return Path(
+        input_data_dir, "photogrammetry", "outputs", f"{long_site_name}_model_local.ply"
+    )
+
+
+def get_cameras_filename(site_name, input_data_dir):
+    long_site_name = convert_short_site_name_to_long(site_name)
+    return Path(
+        input_data_dir, "photogrammetry", "outputs", f"{long_site_name}_cameras.xml"
+    )
+
+
+def get_mesh_transform_filename(site_name, input_data_dir):
+    return get_cameras_filename(site_name, input_data_dir=input_data_dir)
+
+
+def get_DTM_filename(site_name, input_data_dir):
+    long_site_name = convert_short_site_name_to_long(site_name)
+    return Path(
+        input_data_dir,
+        "photogrammetry",
+        "outputs",
+        f"{long_site_name}_dtm-ptcloud.tif",
+    )
+
+
+def get_MV_training_folder(site, prediction_data_dir, append_vis=False):
+
+    training_data_folder = Path(
+        prediction_data_dir,
+        "MV_training_data",
+        site,
+    )
+
+    if append_vis:
+        return Path(training_data_folder, "vis")
+    return training_data_folder
+
+
+def get_labeled_mesh_filename(site_name, prediction_data_dir, get_vis_filename=False):
+    vis_file_stem = Path(
+        prediction_data_dir,
+        "labeled_mesh",
+        f"{site_name}_labeled_mesh",
+    )
+    if get_vis_filename:
+        return vis_file_stem.with_suffix(".png")
+    else:
+        return vis_file_stem.with_suffix(".ply")
+
+
 # Step 2 functions
 def get_training_sites_str(training_sites):
     return "_".join(training_sites)
@@ -291,64 +371,6 @@ def get_unlabeled_crowns_file(site, data_dir):
     return Path(data_dir, "predicted-treecrowns", f"{site}.gpkg")
 
 
-def get_image_folder(site_name, mission_type=None):
-    image_folder = Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "01_images",
-    )
-    if mission_type is None:
-        return image_folder
-    return get_subfolder_by_mission_type(image_folder, mission_type=mission_type)
-
-
-def get_mesh_filename(site_name):
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "02_photogrammetry",
-        f"{site_name}_mesh.ply",
-    )
-
-
-def get_cameras_filename(site_name):
-    # The camera file exported from Metashape
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "02_photogrammetry",
-        f"{site_name}_cameras.xml",
-    )
-
-
-def get_mesh_transform_filename(site_name):
-    return get_cameras_filename(site_name)
-
-
-def get_DTM_filename(site_name):
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "02_photogrammetry",
-        f"{site_name}_DTM.tif",
-    )
-
-
-def get_labeled_mesh_filename(site_name):
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "03_training_data",
-        "MV",
-        "labeled_mesh.ply",
-    )
-
-
 def get_oblique_images_folder(short_model_name):
     return {
         "chips": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/ChipsB/ChipsB_80m_2021_complete",
@@ -356,57 +378,6 @@ def get_oblique_images_folder(short_model_name):
         "valley": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/ValleyA/ValleyA_90m",
         "lassic": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/Lassic/Lassic_80m",
     }[short_model_name]
-
-
-def get_subfolder_by_mission_type(folder, mission_type):
-    subfolders = list(filter(os.path.isdir, list(folder.glob("*"))))
-    if mission_type == "MV-LO":
-        subfolders = list(filter(lambda x: "_120m" not in str(x), subfolders))
-    elif mission_type == "MV-HN":
-        subfolders = list(filter(lambda x: "_120m" in str(x), subfolders))
-    else:
-        raise ValueError(f"Mission type {mission_type} not valid")
-
-    if len(subfolders) != 1:
-        raise ValueError("Subfolders")
-
-    return subfolders[0]
-
-
-def get_render_folder(site_name, mission_type=None):
-    render_folder = Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "03_training_data",
-        "MV",
-        "rendered_labels",
-    )
-    if mission_type is None:
-        return render_folder
-    else:
-        return get_subfolder_by_mission_type(render_folder, mission_type=mission_type)
-
-
-def get_subset_images_folder(site_name, mission_type=None):
-    subset_images_folder = Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "03_training_data",
-        "MV",
-        "images",
-    )
-    if mission_type is None:
-        return subset_images_folder
-    else:
-        return get_subfolder_by_mission_type(
-            subset_images_folder, mission_type=mission_type
-        )
-
-
-def get_mesh_vis_file(site_name):
-    return Path(VIS_ROOT, site_name, "mesh_vis.png").resolve()
 
 
 def get_labels_vis_folder(site_name, mission_type):

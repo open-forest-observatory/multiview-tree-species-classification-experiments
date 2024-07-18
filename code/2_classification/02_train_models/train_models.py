@@ -11,7 +11,6 @@ from pathlib import Path
 constants_dir = str(Path(Path(__file__).parent, "..").resolve())
 sys.path.append(constants_dir)
 from constants import (
-    DEFAULT_INPUT_DATA_DIR,
     DEFAULT_PREDICTION_DATA_DIR,
     FOLDER_TO_CITYSCAPES_SCRIPT,
     MMSEG_PYTHON,
@@ -29,9 +28,7 @@ from constants import (
 )
 
 
-def train_model(
-    mission_type, training_sites, run_ID, input_data_dir, prediction_data_dir
-):
+def train_model(mission_type, training_sites, run_ID, prediction_data_dir):
     # Get folder path for agregated images and labels
     aggregated_images_folder = get_aggregated_images_folder(
         prediction_data_dir=prediction_data_dir,
@@ -158,11 +155,6 @@ def parse_args():
         help="Train one model for each set of training sites in the list",
     )
     parser.add_argument(
-        "--input-data-dir",
-        default=DEFAULT_INPUT_DATA_DIR,
-        help="Where to find the input data, e.g. images, photogrammetry, field reference",
-    )
-    parser.add_argument(
         "--prediction-data-dir",
         default=DEFAULT_PREDICTION_DATA_DIR,
         help="Where to find and update ML prediction data",
@@ -184,6 +176,5 @@ if __name__ == "__main__":
                     mission_type=mission_type,
                     training_sites=training_site_set,
                     run_ID=run_ID,
-                    input_data_dir=args.input_data_dir,
                     prediction_data_dir=args.prediction_data_dir,
                 )

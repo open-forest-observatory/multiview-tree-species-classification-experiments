@@ -123,20 +123,23 @@ def get_ortho_training_data_folder(site, prediction_data_dir, append_vis=False):
     return training_data_folder
 
 
-def get_subfolder_by_mission_type(folder, site_name, mission_type):
-    raise NotImplementedError()
-    subfolders = list(filter(os.path.isdir, list(folder.glob("*"))))
+def get_subfolder_by_mission_type(site_name, mission_type):
     if mission_type == "MV-LO":
-        subfolders = list(filter(lambda x: "_120m" not in str(x), subfolders))
+        return {
+            "chips": "0340",
+            "delta": "0335",
+            "lassic": "0348",
+            "valley": "0338",
+        }[site_name]
     elif mission_type == "MV-HN":
-        subfolders = list(filter(lambda x: "_120m" in str(x), subfolders))
+        return {
+            "chips": "0339",
+            "delta": "0334",
+            "lassic": "0349",
+            "valley": "0337",
+        }[site_name]
     else:
-        raise ValueError(f"Mission type {mission_type} not valid")
-
-    if len(subfolders) != 1:
-        raise ValueError("Subfolders")
-
-    return subfolders[0]
+        raise ValueError(f"Mission type {mission_type} not supported")
 
 
 def get_image_folder(site_name, input_data_dir, mission_type=None):
@@ -144,9 +147,11 @@ def get_image_folder(site_name, input_data_dir, mission_type=None):
 
     if mission_type is None:
         return image_folder
-    return get_subfolder_by_mission_type(
-        image_folder, site_name=site_name, mission_type=mission_type
+
+    subfolder = get_subfolder_by_mission_type(
+        site_name=site_name, mission_type=mission_type
     )
+    return Path(image_folder, subfolder)
 
 
 def get_mesh_filename(site_name, input_data_dir):
@@ -262,25 +267,6 @@ def get_mmseg_style_training_folder(prediction_data_dir, training_sites, mission
     return Path(training_data_folder, f"{description}_mmseg_formatted_data")
 
 
-def get_subfolder_by_mission_type(site_name, mission_type):
-    if mission_type == "MV-LO":
-        return {
-            "chips": "0340",
-            "delta": "0335",
-            "lassic": "0348",
-            "valley": "0338",
-        }[site_name]
-    elif mission_type == "MV-HN":
-        return {
-            "chips": "0339",
-            "delta": "0334",
-            "lassic": "0349",
-            "valley": "0337",
-        }[site_name]
-    else:
-        raise ValueError(f"Mission type {mission_type} not supported")
-
-
 # Step 3 functions
 def get_prediction_folder(
     prediction_site, training_sites, mission_type, run_ID, prediction_data_dir
@@ -305,6 +291,19 @@ def get_ortho_prediction_data_folder(site, prediction_data_dir, append_vis=False
     if append_vis:
         return Path(training_data_folder, "vis")
     return training_data_folder
+
+
+def get_MV_images_subset_folder(site, prediction_data_dir, mission_type=None):
+    MV_subset_folder = Path(
+        prediction_data_dir,
+        "MV_images_subset",
+        site,
+    )
+    if mission_type is None:
+        return MV_subset_folder
+
+    subfolder = get_subfolder_by_mission_type(mission_type=mission_type)
+    return Path(MV_subset_folder, subfolder)
 
 
 # Step 4 functions

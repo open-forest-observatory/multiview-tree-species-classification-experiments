@@ -4,6 +4,7 @@ import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
+from geograypher.cameras import MetashapeCameraSet
 from geograypher.predictors.ortho_segmentor import write_chips
 from geograypher.utils.visualization import show_segmentation_labels
 
@@ -17,12 +18,15 @@ from constants import (
     INFERENCE_SCRIPT,
     INFERENCE_STRIDE,
     MMSEG_PYTHON,
+    get_cameras_filename,
     get_IDs_to_labels,
+    get_image_folder,
     get_labels_filename,
+    get_MV_images_subset_folder,
     get_ortho_filename,
     get_ortho_prediction_data_folder,
     get_prediction_folder,
-    get_subset_images_folder,
+    get_subfolder_by_mission_type,
     get_work_dir,
 )
 
@@ -65,14 +69,41 @@ def predict_model(
             remove_old=True,
         )
     else:
-        if full_site:
-            pass
-        else:
-            pass
-        input_images = get_subset_images_folder(test_site, mission_type=mission_type)
-        # Append the last part of the input images folder so the name matches
-        # TODO figure out whether this is entirely required
-        prediction_folder = Path(prediction_folder, input_images.parts[-1])
+        # Folder to all the raw images
+        all_images_folder = get_image_folder(
+            site_name=test_site,
+            input_data_dir=input_data_dir,
+        )
+        # Path to the cameras file from metashape
+        cameras_file = get_cameras_filename(
+            site_name=test_site, input_data_dir=input_data_dir
+        )
+        # Create a cameras object
+        camera_set = MetashapeCameraSet(
+            camera_file=cameras_file, image_folder=all_images_folder
+        )
+
+        # If we don't want images from the full site, subset the camera set to only those within the ROI
+        if not full_site:
+            ROI_file = get_labels_filename(
+                input_data_dir=input_data_dir, include_snag_class=True
+            )
+            # TODO make this radius configurable
+            camera_set = camera_set.get_subset_ROI(ROI=ROI_file, buffer_radius=100)
+
+        # Save out the subset of images
+        subset_folder = get_MV_images_subset_folder(
+            site=test_site, prediction_data_dir=prediction_data_dir
+        )
+        camera_set.save_images(subset_folder)
+
+        # Append the mission subfolder
+        input_images = Path(
+            subset_folder,
+            get_subfolder_by_mission_type(
+                site_name=test_site, mission_type=mission_type
+            ),
+        )
 
     # Get folder to write predictions to
     prediction_folder = get_prediction_folder(
@@ -137,7 +168,7 @@ def parse_args():
     parser.add_argument(
         "--run-IDs",
         nargs="+",
-        default=("00", "01", "02"),
+        default=("00",),
         help="The run IDs to generate predictions from",
     )
     parser.add_argument(

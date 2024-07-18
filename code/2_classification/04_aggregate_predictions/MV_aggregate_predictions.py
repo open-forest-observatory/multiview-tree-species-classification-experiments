@@ -42,6 +42,7 @@ def main(
     aggregate,
     label_polygons,
     compute_accuracy,
+    vis,
 ):
     # Get IDs to labels mapping
     IDs_to_labels = get_IDs_to_labels(include_snag_class=include_snag_class)
@@ -59,7 +60,6 @@ def main(
     mesh_transform_file = get_mesh_transform_filename(
         site_name=site_name, input_data_dir=input_data_dir
     )
-
 
     if fullsite_pred:
         # If we're using the full site, assume the model was trained on all input sites
@@ -118,6 +118,7 @@ def main(
     )
 
     if aggregate:
+        # Aggregate predictions onto the mesh and save out the per-face result
         aggregate_images(
             mesh_file=mesh_file,
             cameras_file=cameras_file,
@@ -131,10 +132,11 @@ def main(
             aggregated_face_values_savefile=aggregated_face_values_file,
             aggregate_image_scale=AGGREGATE_IMAGE_SCALE,
             n_aggregation_clusters=N_AGGREGATION_CLUSTERS,
-            vis=args.vis,
+            vis=vis,
         )
 
     if label_polygons:
+        # Label geospatial polygons based on the labeled faces of the mesh
         label_polygons(
             mesh_file=mesh_file,
             mesh_transform_file=mesh_transform_file,
@@ -144,17 +146,22 @@ def main(
             IDs_to_labels=IDs_to_labels,
             geospatial_polygons_to_label=geospatial_polygons_to_label,
             geospatial_polygons_labeled_savefile=predicted_labeled_polygons_file,
-            vis_mesh=args.vis,
+            vis_mesh=vis,
         )
 
     if compute_accuracy:
+        # Compute the accuracy of the predictions version ground truth
         pred_polygons = gpd.read_file(predicted_labeled_polygons_file)
 
-        if not args.fullsite_pred:
+        if not fullsite_pred:
+            # Filter out any predictions from other sites
             pred_polygons = pred_polygons.query("fire==@site_name")
 
+        # Get the predicted labels per polygon
         pred_labels = pred_polygons[PRED_CLASS_ID_KEY].tolist()
+        # Get the groundtruth lables per polygon
         gt_labels = pred_polygons[LABELS_COLUMN].tolist()
+        # Compute a confusion matrix
         compute_and_show_cf(
             pred_labels=pred_labels,
             gt_labels=gt_labels,
@@ -207,4 +214,5 @@ if __name__ == "__main__":
                     aggregate=args.aggregate,
                     label_polygons=args.label_polygons,
                     compute_accuracy=args.compute_accuracy,
+                    vis=args.vis,
                 )

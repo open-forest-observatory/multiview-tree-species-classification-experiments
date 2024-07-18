@@ -373,6 +373,7 @@ def get_aggregated_face_values_file(
         f"run_{run_ID}.npy",
     )
 
+
 def get_predicted_labeled_polygons_file(
     prediction_site, training_sites, mission_type, run_ID, prediction_data_dir
 ):
@@ -434,7 +435,6 @@ def get_inference_image_folder(site_name):
         "03_training_data",
         "images_near_labels",
     )
-
 
 
 def get_predicted_vector_labels_filename(prediction_site, training_sites):

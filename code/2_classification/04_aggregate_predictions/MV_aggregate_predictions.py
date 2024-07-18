@@ -1,9 +1,19 @@
 import argparse
+import sys
+from pathlib import Path
 
 import geopandas as gpd
+from geograypher.constants import PRED_CLASS_ID_KEY
+from geograypher.entrypoints import aggregate_images, label_polygons
+from geograypher.utils.prediction_metrics import compute_and_show_cf
+
+constants_dir = str(Path(Path(__file__).parent, "..").resolve())
+sys.path.append(constants_dir)
 from constants import (
     AGGREGATE_IMAGE_SCALE,
     ALL_SITE_NAMES,
+    DEFAULT_INPUT_DATA_DIR,
+    DEFAULT_PREDICTION_DATA_DIR,
     LABELS_COLUMN,
     N_AGGREGATION_CLUSTERS,
     get_aggregated_face_values_file,
@@ -21,19 +31,18 @@ from constants import (
     get_subfolder_by_mission_type,
     get_unlabeled_crowns_file,
 )
-from geograypher.constants import PRED_CLASS_ID_KEY
-from geograypher.entrypoints import aggregate_images, label_polygons
-from geograypher.utils.prediction_metrics import compute_and_show_cf
 
 
 def main(
     site_name,
+    fullsite_pred,
     include_snag_class,
     input_data_dir,
     prediction_data_dir,
     aggregate,
     label_polygons,
     compute_accuracy,
+    training_sites,
 ):
 
     # Get IDs to labels mapping
@@ -52,6 +61,7 @@ def main(
     mesh_transform_file = get_mesh_transform_filename(
         site_name=site_name, input_data_dir=input_data_dir
     )
+
     # Get the folder where predictions are written to
     prediction_folder = get_prediction_folder(
         prediction_site=site_name,
@@ -86,9 +96,10 @@ def main(
         training_sites=training_sites,
         mission_type=mission_type,
         run_ID=run_ID,
+        prediction_data_dir=prediction_data_dir,
     )
 
-    if args.fullsite_pred:
+    if fullsite_pred:
         # If we're using the full site, assume the model was trained on all input sites
         training_sites = ALL_SITE_NAMES
         # Set the ROI to be the bounds of the unlabled crowns
@@ -106,7 +117,7 @@ def main(
         )
         ROI = labeled_polygons_file
         geospatial_polygons_to_label = labeled_polygons_file
-
+    breakpoint()
     if aggregate:
         aggregate_images(
             mesh_file=mesh_file,
@@ -167,6 +178,16 @@ def parse_args():
     parser.add_argument(
         "--dont-include-snags", action="store_true", help="Include the snag class"
     )
+    parser.add_argument(
+        "--input-data-dir",
+        default=DEFAULT_INPUT_DATA_DIR,
+        help="Where the input data, such as photogrammetry produts and field reference is",
+    )
+    parser.add_argument(
+        "--prediction-data-dir",
+        default=DEFAULT_PREDICTION_DATA_DIR,
+        help="where to write the output data",
+    )
 
     args = parser.parse_args()
     return args
@@ -178,4 +199,14 @@ if __name__ == "__main__":
     for run_ID in args.run_IDs:
         for mission_type in args.mission_types:
             for site_name in args.site_names:
-                pass
+                main(
+                    site_name=site_name,
+                    include_snag_class=not args.dont_include_snags,
+                    fullsite_pred=args.fullsite_pred,
+                    input_data_dir=args.input_data_dir,
+                    prediction_data_dir=args.prediction_data_dir,
+                    aggregate=args.aggregate,
+                    label_polygons=args.label_polygons,
+                    compute_accuracy=args.compute_accuracy,
+                    training_sites=ALL_SITE_NAMES, # TODO update this
+                )

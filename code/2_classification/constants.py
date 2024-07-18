@@ -373,6 +373,20 @@ def get_aggregated_face_values_file(
         f"run_{run_ID}.npy",
     )
 
+def get_predicted_labeled_polygons_file(
+    prediction_site, training_sites, mission_type, run_ID, prediction_data_dir
+):
+    predicted_output_base_file = get_predicted_output_base_file(
+        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
+    )
+
+    return Path(
+        predicted_output_base_file,
+        mission_type,
+        "predicted_labeled_polygons",
+        f"run_{run_ID}.geojson",
+    )
+
 
 def get_aggregated_raster_pred_file(
     training_sites, inference_site, run_ID, prediction_data_dir
@@ -421,20 +435,6 @@ def get_inference_image_folder(site_name):
         "images_near_labels",
     )
 
-
-def get_predicted_labeled_polygons_file(
-    prediction_site, training_sites, mission_type, run_ID
-):
-    predicted_output_base_file = get_predicted_output_base_file(
-        prediction_site, training_sites
-    )
-
-    return Path(
-        predicted_output_base_file,
-        mission_type,
-        "predicted_labeled_polygons",
-        f"run_{run_ID}.geojson",
-    )
 
 
 def get_predicted_vector_labels_filename(prediction_site, training_sites):

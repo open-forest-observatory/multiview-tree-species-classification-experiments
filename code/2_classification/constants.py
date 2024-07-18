@@ -54,6 +54,8 @@ DOWNSAMPLE_TARGET = 1
 AGGREGATE_IMAGE_SCALE = 1
 # Weight of ground when assigning polygons labels
 GROUND_WEIGHT_POLYGON_LABELING = 0.01
+# Number of clusters to break the mesh into for inference
+N_AGGREGATION_CLUSTERS = 20
 
 
 # Step 1 functions
@@ -385,11 +387,11 @@ def get_aggregated_raster_pred_file(
     )
 
 
+def get_unlabeled_crowns_file(site, input_data_dir):
+    return Path(input_data_dir, "predicted-treecrowns", f"{site}.gpkg")
+
+
 # Step 5 functions
-
-
-def get_unlabeled_crowns_file(site, data_dir):
-    return Path(data_dir, "predicted-treecrowns", f"{site}.gpkg")
 
 
 def get_oblique_images_folder(short_model_name):

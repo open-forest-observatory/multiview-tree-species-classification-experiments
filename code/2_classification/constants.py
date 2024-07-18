@@ -160,7 +160,7 @@ def get_mesh_filename(site_name, input_data_dir):
 def get_cameras_filename(site_name, input_data_dir):
     long_site_name = convert_short_site_name_to_long(site_name)
     return Path(
-        input_data_dir, "photogrammetry", "outputs", f"{long_site_name}_cameras.xml"
+        input_data_dir, "photogrammetry", "outputs", f"{long_site_name}_cameras_manual_export.xml"
     )
 
 

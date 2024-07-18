@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--just-vis", action="store_true")
     parser.add_argument("--input-data-dir", default=DEFAULT_INPUT_DATA_DIR)
     parser.add_argument("--prediction-data-dir", default=DEFAULT_PREDICTION_DATA_DIR)
-    parser.add_argument("--dont-include-snags", action="store_false")
+    parser.add_argument("--dont-include-snags", action="store_true")
     args = parser.parse_args()
     return args
 
@@ -85,12 +85,12 @@ def main(site_name, include_snag_class, input_data_dir, prediction_data_dir, jus
             mesh_vis_file=mesh_vis_file,
             labels_vis_folder=MV_training_vis_folder,
             IDs_to_labels=IDs_to_labels,
+            cameras_ROI_buffer_radius_meters=100,
         )
 
 
 if __name__ == "__main__":
     args = parse_args()
-
     for site_name in args.site_names:
         main(
             site_name=site_name,

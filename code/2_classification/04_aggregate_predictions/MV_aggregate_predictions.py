@@ -42,13 +42,11 @@ def main(
     aggregate,
     label_polygons,
     compute_accuracy,
-    training_sites,
 ):
-
     # Get IDs to labels mapping
     IDs_to_labels = get_IDs_to_labels(include_snag_class=include_snag_class)
 
-    # Get folder and file paths
+    # Get input folder and file paths
     image_folder = get_image_folder(site_name=site_name, input_data_dir=input_data_dir)
     subset_images_folder = get_image_folder(
         site_name=site_name, input_data_dir=input_data_dir, mission_type=mission_type
@@ -61,6 +59,26 @@ def main(
     mesh_transform_file = get_mesh_transform_filename(
         site_name=site_name, input_data_dir=input_data_dir
     )
+
+
+    if fullsite_pred:
+        # If we're using the full site, assume the model was trained on all input sites
+        training_sites = ALL_SITE_NAMES
+        # Set the ROI to be the bounds of the unlabled crowns
+        unlabeled_polygons_file = get_unlabeled_crowns_file(
+            site_name=site_name, input_data_dir=input_data_dir
+        )
+        ROI = unlabeled_polygons_file
+        geospatial_polygons_to_label = unlabeled_polygons_file
+    else:
+        # If we're not doing a full site prediction, assume the model was trained on all other sites
+        training_sites = sorted(list(filter(lambda x: x != site_name, ALL_SITE_NAMES)))
+        # Set the ROI to be the bounds of just the labled crowns
+        labeled_polygons_file = get_labels_filename(
+            input_data_dir=input_data_dir, include_snag_class=include_snag_class
+        )
+        ROI = labeled_polygons_file
+        geospatial_polygons_to_label = labeled_polygons_file
 
     # Get the folder where predictions are written to
     prediction_folder = get_prediction_folder(
@@ -99,25 +117,6 @@ def main(
         prediction_data_dir=prediction_data_dir,
     )
 
-    if fullsite_pred:
-        # If we're using the full site, assume the model was trained on all input sites
-        training_sites = ALL_SITE_NAMES
-        # Set the ROI to be the bounds of the unlabled crowns
-        unlabeled_polygons_file = get_unlabeled_crowns_file(
-            site_name=site_name, input_data_dir=input_data_dir
-        )
-        ROI = unlabeled_polygons_file
-        geospatial_polygons_to_label = unlabeled_polygons_file
-    else:
-        # If we're not doing a full site prediction, assume the model was trained on all other sites
-        training_sites = sorted(list(filter(lambda x: x != site_name, ALL_SITE_NAMES)))
-        # Set the ROI to be the bounds of just the labled crowns
-        labeled_polygons_file = get_labels_filename(
-            input_data_dir=input_data_dir, include_snag_class=include_snag_class
-        )
-        ROI = labeled_polygons_file
-        geospatial_polygons_to_label = labeled_polygons_file
-    breakpoint()
     if aggregate:
         aggregate_images(
             mesh_file=mesh_file,
@@ -208,5 +207,4 @@ if __name__ == "__main__":
                     aggregate=args.aggregate,
                     label_polygons=args.label_polygons,
                     compute_accuracy=args.compute_accuracy,
-                    training_sites=ALL_SITE_NAMES, # TODO update this
                 )

@@ -262,6 +262,25 @@ def get_mmseg_style_training_folder(prediction_data_dir, training_sites, mission
     return Path(training_data_folder, f"{description}_mmseg_formatted_data")
 
 
+def get_subfolder_by_mission_type(site_name, mission_type):
+    if mission_type == "MV-LO":
+        return {
+            "chips": "0340",
+            "delta": "0335",
+            "lassic": "0348",
+            "valley": "0338",
+        }[site_name]
+    elif mission_type == "MV-HN":
+        return {
+            "chips": "0339",
+            "delta": "0334",
+            "lassic": "0349",
+            "valley": "0337",
+        }[site_name]
+    else:
+        raise ValueError(f"Mission type {mission_type} not supported")
+
+
 # Step 3 functions
 def get_prediction_folder(
     prediction_site, training_sites, mission_type, run_ID, prediction_data_dir

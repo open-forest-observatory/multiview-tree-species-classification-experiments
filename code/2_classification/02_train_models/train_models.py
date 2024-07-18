@@ -22,9 +22,9 @@ from constants import (
     get_aggregated_labels_folder,
     get_IDs_to_labels,
     get_mmseg_style_training_folder,
+    get_MV_training_folder,
     get_ortho_training_data_folder,
-    get_render_folder,
-    get_subset_images_folder,
+    get_subfolder_by_mission_type,
     get_work_dir,
 )
 
@@ -62,12 +62,16 @@ def train_model(
             image_folder = Path(training_chips_folder, "imgs")
             image_ext = TRAINING_IMGS_EXT
         else:
-            render_folder = get_render_folder(
-                site_name=training_site, mission_type=mission_type
+            MV_training_folder = get_MV_training_folder(
+                training_site, prediction_data_dir=prediction_data_dir
             )
-            image_folder = get_subset_images_folder(
-                site_name=training_site, mission_type=mission_type
+            # Get the subfolder for either nadir or oblique data
+            mission_subfolder = get_subfolder_by_mission_type(
+                training_site, mission_type=mission_type
             )
+            render_folder = Path(MV_training_folder, "anns", mission_subfolder)
+            image_folder = Path(MV_training_folder, "imgs", mission_subfolder)
+
             image_ext = ".JPG"
 
         # Determine the location to link to for each labels and images
@@ -145,11 +149,12 @@ def parse_args():
         nargs="+",
         default=[
             ["chips", "delta", "lassic", "valley"],
-            ["chips", "delta", "lassic"],
-            ["chips", "delta", "valley"],
-            ["chips", "lassic", "valley"],
-            ["delta", "lassic", "valley"],
+            # ["chips", "delta", "lassic"],
+            # ["chips", "delta", "valley"],
+            # ["chips", "lassic", "valley"],
+            # ["delta", "lassic", "valley"],
         ],
+        type=str,
         help="Train one model for each set of training sites in the list",
     )
     parser.add_argument(

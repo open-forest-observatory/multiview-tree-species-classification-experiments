@@ -69,6 +69,8 @@ def predict_model(
             ROI_file=ROI_file,
             remove_old=True,
         )
+        # Only applicable to multiview
+        mission_folder = None
     else:
         # Folder to all the raw images
         all_images_folder = get_image_folder(
@@ -106,12 +108,14 @@ def predict_model(
         )
         camera_set.save_images(subset_folder)
 
+        mission_folder = get_subfolder_by_mission_type(
+            site_name=test_site, mission_type=mission_type
+        )
+
         # Append the mission subfolder
         input_images = Path(
             subset_folder,
-            get_subfolder_by_mission_type(
-                site_name=test_site, mission_type=mission_type
-            ),
+            mission_folder
         )
 
     # Get folder to write predictions to
@@ -122,6 +126,9 @@ def predict_model(
         run_ID=run_ID,
         prediction_data_dir=prediction_data_dir,
     )
+    if mission_folder is not None:
+        # Append the mission folder so the pathing is expected in the next stage
+        prediction_folder = Path(prediction_folder, mission_folder)
     # If the prediction folder exists alread, remove it
     if prediction_folder.is_dir():
         shutil.rmtree(prediction_folder)

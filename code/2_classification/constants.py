@@ -76,13 +76,13 @@ def get_labels_filename(input_data_dir, include_snag_class=True):
         labels_filename = Path(
             input_data_dir,
             "predicted-treecrowns-w-field-data",
-            "predicted-treecrowns-w-field-data-cleaned_david.gpkg",
+            "predicted-treecrowns-w-field-data-cleaned.gpkg",
         )
     else:
         labels_filename = Path(
             input_data_dir,
             "predicted-treecrowns-w-field-data",
-            "predicted-treecrowns-w-field-data-cleaned-snagsremoved_david.gpkg",
+            "predicted-treecrowns-w-field-data-cleaned-snagsremoved.gpkg",
         )
 
     return labels_filename

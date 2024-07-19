@@ -116,7 +116,7 @@ def get_ortho_filename(site, input_data_dir):
 def get_ortho_training_data_folder(site, prediction_data_dir, append_vis=False):
     training_data_folder = Path(
         prediction_data_dir,
-        "ortho_training_data",
+        "1_ortho_training_data",
         site,
     )
 
@@ -170,7 +170,7 @@ def get_cameras_filename(site_name, input_data_dir):
         input_data_dir,
         "photogrammetry",
         "outputs",
-        f"{long_site_name}_cameras_manual_export.xml",
+        f"{long_site_name}_cameras.xml",
     )
 
 
@@ -192,7 +192,7 @@ def get_MV_training_folder(site, prediction_data_dir, append_vis=False):
 
     training_data_folder = Path(
         prediction_data_dir,
-        "MV_training_data",
+        "1_MV_training_data",
         site,
     )
 
@@ -204,7 +204,7 @@ def get_MV_training_folder(site, prediction_data_dir, append_vis=False):
 def get_labeled_mesh_filename(site_name, prediction_data_dir, get_vis_filename=False):
     vis_file_stem = Path(
         prediction_data_dir,
-        "labeled_mesh",
+        "1_labeled_mesh",
         f"{site_name}_labeled_mesh",
     )
     if get_vis_filename:
@@ -223,7 +223,7 @@ def get_training_data_folder(prediction_data_dir, training_sites, mission_type):
     training_sites_str = get_training_sites_str(training_sites)
     return Path(
         prediction_data_dir,
-        "training_data",
+        "2_training_data",
         f"{mission_type}_{training_sites_str}",
     )
 
@@ -276,7 +276,7 @@ def get_prediction_folder(
     training_sites_str = get_training_sites_str(training_sites=training_sites)
     return Path(
         prediction_data_dir,
-        "model_predictions",
+        "3_model_predictions",
         f"{training_sites_str}_{mission_type}_model",
         f"run_{run_ID}",
         prediction_site,
@@ -286,7 +286,7 @@ def get_prediction_folder(
 def get_ortho_prediction_data_folder(site, prediction_data_dir, append_vis=False):
     training_data_folder = Path(
         prediction_data_dir,
-        "ortho_prediction_data",
+        "3_ortho_prediction_data",
         site,
     )
 
@@ -298,7 +298,7 @@ def get_ortho_prediction_data_folder(site, prediction_data_dir, append_vis=False
 def get_MV_images_subset_folder(site, prediction_data_dir, mission_type=None):
     MV_subset_folder = Path(
         prediction_data_dir,
-        "MV_images_subset",
+        "3_MV_images_subset",
         site,
     )
     if mission_type is None:
@@ -315,7 +315,7 @@ def get_predicted_output_base_file(
     training_sites_str = get_training_sites_str(training_sites)
     return Path(
         prediction_data_dir,
-        "accuracy_evaluation",
+        "4_accuracy_evaluation",
         f"{training_sites_str}_model",
         prediction_site,
     )
@@ -395,7 +395,7 @@ def get_aggregated_raster_pred_file(
     training_sites_str = get_training_sites_str(training_sites=training_sites)
     return Path(
         prediction_data_dir,
-        "ortho_raster_predictions",
+        "4_ortho_raster_predictions",
         f"{training_sites_str}_model_ortho_aggregated_raster",
         inference_site,
         f"run_{run_ID}.tif",

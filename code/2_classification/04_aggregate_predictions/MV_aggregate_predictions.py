@@ -40,7 +40,7 @@ def main(
     input_data_dir,
     prediction_data_dir,
     aggregate,
-    label_polygons,
+    classify_polygons,
     compute_accuracy,
     vis,
 ):
@@ -66,7 +66,7 @@ def main(
         training_sites = ALL_SITE_NAMES
         # Set the ROI to be the bounds of the unlabled crowns
         unlabeled_polygons_file = get_unlabeled_crowns_file(
-            site_name=site_name, input_data_dir=input_data_dir
+            site=site_name, input_data_dir=input_data_dir
         )
         ROI = unlabeled_polygons_file
         geospatial_polygons_to_label = unlabeled_polygons_file
@@ -135,7 +135,7 @@ def main(
             vis=vis,
         )
 
-    if label_polygons:
+    if classify_polygons:
         # Label geospatial polygons based on the labeled faces of the mesh
         label_polygons(
             mesh_file=mesh_file,
@@ -175,7 +175,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--fullsite-pred", action="store_true")
     parser.add_argument("--aggregate", action="store_true")
-    parser.add_argument("--label-polygons", action="store_true")
+    parser.add_argument("--classify-polygons", action="store_true")
     parser.add_argument("--compute-accuracy", action="store_true")
     parser.add_argument("--vis", action="store_true")
     parser.add_argument("--site-names", nargs="+", default=ALL_SITE_NAMES)
@@ -212,7 +212,7 @@ if __name__ == "__main__":
                     input_data_dir=args.input_data_dir,
                     prediction_data_dir=args.prediction_data_dir,
                     aggregate=args.aggregate,
-                    label_polygons=args.label_polygons,
+                    classify_polygons=args.classify_polygons,
                     compute_accuracy=args.compute_accuracy,
                     vis=args.vis,
                 )

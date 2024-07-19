@@ -19,6 +19,7 @@ from constants import (
     INFERENCE_STRIDE,
     MMSEG_PYTHON,
     get_cameras_filename,
+    get_unlabeled_crowns_file,
     get_IDs_to_labels,
     get_image_folder,
     get_labels_filename,
@@ -83,13 +84,21 @@ def predict_model(
             camera_file=cameras_file, image_folder=all_images_folder
         )
 
-        # If we don't want images from the full site, subset the camera set to only those within the ROI
-        if not full_site:
+        if full_site:
+            # Even if we want to generate predictions on the whole site, we still want to exclude regions
+            # that don't have any trees
+            ROI_file = get_unlabeled_crowns_file(
+                site=test_site,
+                input_data_dir=input_data_dir,
+            )
+        else:
+            # Only include the regions around the labeled trees
             ROI_file = get_labels_filename(
                 input_data_dir=input_data_dir, include_snag_class=True
             )
-            # TODO make this radius configurable
-            camera_set = camera_set.get_subset_ROI(ROI=ROI_file, buffer_radius=100)
+
+        # TODO make this radius configurable
+        camera_set = camera_set.get_subset_ROI(ROI=ROI_file, buffer_radius=100)
 
         # Save out the subset of images
         subset_folder = get_MV_images_subset_folder(

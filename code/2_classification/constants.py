@@ -55,7 +55,7 @@ AGGREGATE_IMAGE_SCALE = 1
 # Weight of ground when assigning polygons labels
 GROUND_WEIGHT_POLYGON_LABELING = 0.01
 # Number of clusters to break the mesh into for inference
-N_AGGREGATION_CLUSTERS = 20
+N_AGGREGATION_CLUSTERS = 50
 
 
 # Step 1 functions

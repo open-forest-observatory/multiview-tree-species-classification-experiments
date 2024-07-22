@@ -81,13 +81,16 @@ def main(
         geospatial_polygons_to_label = labeled_polygons_file
 
     # Get the folder where predictions are written to
+    # Go one folder up since it needs to match the images structure
+    # TODO see if this can be made more robust so predictions from another mission aren't added
     prediction_folder = get_prediction_folder(
         prediction_site=site_name,
         training_sites=training_sites,
-        mission_type=mission_type,
         run_ID=run_ID,
+        mission_type=mission_type,
         prediction_data_dir=prediction_data_dir,
     )
+
     aggregated_face_values_file = get_aggregated_face_values_file(
         site_name,
         training_sites=training_sites,

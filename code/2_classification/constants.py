@@ -27,28 +27,13 @@ INFERENCE_SCRIPT = Path(MMSEGMENTATION_FOLDER, "tools", "inference.py")
 
 # Important folders
 # TODO make this work for notebooks as well if needed
-PROJECT_ROOT = Path(__file__, "..", "..", "..").resolve()
-DATA_ROOT = Path(PROJECT_ROOT, "data")
-VIS_ROOT = Path(PROJECT_ROOT, "vis")
-# SCRATCH_ROOT = Path(Path.home(), "scratch", "organized_str_disp_MVMT_experiments")
+# PROJECT_ROOT = Path(__file__, "..", "..", "..").resolve()
+DEFAULT_INPUT_DATA_DIR = "/ofo-share/str-disp_drone-data-v2/"
+DEFAULT_PREDICTION_DATA_DIR = "/ofo-share/str-disp_drone-data-v2/2_classification"
 
-# Ground truth information
-LABELS_FILENAME = Path(DATA_ROOT, "field_ref", "crown_labels.gpkg")
-# LABELS_FILENAME = Path(
-#    "/ofo-share/scratch-derek/organized-str-disp-MVMT-experiments/field_ref/crowns_drone_w_field_data_updated_nosnags.gpkg"
-# )
 LABELS_COLUMN = "species_observed"
 
 ALL_SITE_NAMES = ["chips", "delta", "lassic", "valley"]
-
-# Conversion between short and long names
-LONG_SITE_NAME_DICT = {
-    "valley": "ValleyA",
-    "chips": "ChipsB",
-    "delta": "DeltaB",
-    "lassic": "Lassic",
-}
-
 
 TRAINING_IMGS_EXT = ".png"
 INFERENCE_IMGS_EXT = ".png"
@@ -69,9 +54,41 @@ DOWNSAMPLE_TARGET = 1
 AGGREGATE_IMAGE_SCALE = 1
 # Weight of ground when assigning polygons labels
 GROUND_WEIGHT_POLYGON_LABELING = 0.01
+# Number of clusters to break the mesh into for inference
+N_AGGREGATION_CLUSTERS = 50
 
 
-def get_IDs_to_labels(with_ground=False):
+# Step 1 functions
+def convert_short_site_name_to_long(short_site_name):
+    """"""
+    return {
+        "chips": "chips_20240621T0429",
+        "delta": "delta_20240617T2314",
+        "lassic": "lassic_20240621T0430",
+        "valley": "valley_20240607T2022",
+    }[short_site_name]
+
+
+def get_labels_filename(input_data_dir, include_snag_class=True):
+    """Path to the groundtruth labeling"""
+    if include_snag_class:
+        # Ground truth information
+        labels_filename = Path(
+            input_data_dir,
+            "predicted-treecrowns-w-field-data",
+            "predicted-treecrowns-w-field-data-cleaned.gpkg",
+        )
+    else:
+        labels_filename = Path(
+            input_data_dir,
+            "predicted-treecrowns-w-field-data",
+            "predicted-treecrowns-w-field-data-cleaned-snagsremoved.gpkg",
+        )
+
+    return labels_filename
+
+
+def get_IDs_to_labels(include_snag_class=True):
     IDs_to_labels = {
         0: "ABCO",
         1: "CADE",
@@ -79,236 +96,236 @@ def get_IDs_to_labels(with_ground=False):
         3: "PIPJ",
         4: "PSME",
     }
-    if with_ground:
-        IDs_to_labels[5] = "ground"
+    if include_snag_class:
+        IDs_to_labels[5] = "SNAG"
 
     return IDs_to_labels
 
 
-def get_unlabeled_crowns_file(site):
-    return Path(DATA_ROOT, "field_ref", "unlabeled_full_site_crowns", f"{site}.gpkg")
+def get_ortho_filename(site, input_data_dir):
+    long_site_name = convert_short_site_name_to_long(site)
 
-
-def get_image_folder(site_name, mission_type=None):
-    image_folder = Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "01_images",
+    return Path(
+        input_data_dir,
+        "photogrammetry",
+        "outputs",
+        f"{long_site_name}_ortho_dsm-mesh.tif",
     )
+
+
+def get_ortho_training_data_folder(site, prediction_data_dir, append_vis=False):
+    training_data_folder = Path(
+        prediction_data_dir,
+        "1_ortho_training_data",
+        site,
+    )
+
+    if append_vis:
+        return Path(training_data_folder, "vis")
+    return training_data_folder
+
+
+def get_subfolder_by_mission_type(site_name, mission_type):
+    if mission_type == "MV-LO":
+        return {
+            "chips": "0340",
+            "delta": "0335",
+            "lassic": "0348",
+            "valley": "0338",
+        }[site_name]
+    elif mission_type == "MV-HN":
+        return {
+            "chips": "0339",
+            "delta": "0334",
+            "lassic": "0349",
+            "valley": "0337",
+        }[site_name]
+    else:
+        raise ValueError(f"Mission type {mission_type} not supported")
+
+
+def get_image_folder(site_name, input_data_dir, mission_type=None):
+    image_folder = Path(input_data_dir, "imagery-raw", "1_manually-cleaned")
+
     if mission_type is None:
         return image_folder
-    return get_subfolder_by_mission_type(image_folder, mission_type=mission_type)
+
+    subfolder = get_subfolder_by_mission_type(
+        site_name=site_name, mission_type=mission_type
+    )
+    return Path(image_folder, subfolder)
 
 
-def get_mesh_filename(site_name):
+def get_mesh_filename(site_name, input_data_dir):
+
+    long_site_name = convert_short_site_name_to_long(site_name)
     return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "02_photogrammetry",
-        f"{site_name}_mesh.ply",
+        input_data_dir, "photogrammetry", "outputs", f"{long_site_name}_model_local.ply"
     )
 
 
-def get_cameras_filename(site_name):
-    # The camera file exported from Metashape
+def get_cameras_filename(site_name, input_data_dir):
+    long_site_name = convert_short_site_name_to_long(site_name)
     return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "02_photogrammetry",
-        f"{site_name}_cameras.xml",
+        input_data_dir,
+        "photogrammetry",
+        "outputs",
+        f"{long_site_name}_cameras.xml",
     )
 
 
-def get_mesh_transform_filename(site_name):
-    return get_cameras_filename(site_name)
+def get_mesh_transform_filename(site_name, input_data_dir):
+    return get_cameras_filename(site_name, input_data_dir=input_data_dir)
 
 
-def get_DTM_filename(site_name):
+def get_DTM_filename(site_name, input_data_dir):
+    long_site_name = convert_short_site_name_to_long(site_name)
     return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "02_photogrammetry",
-        f"{site_name}_DTM.tif",
+        input_data_dir,
+        "photogrammetry",
+        "outputs",
+        f"{long_site_name}_dtm-ptcloud.tif",
     )
 
 
-def get_labeled_mesh_filename(site_name):
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "03_training_data",
-        "MV",
-        "labeled_mesh.ply",
+def get_MV_training_folder(site, prediction_data_dir, append_vis=False):
+
+    training_data_folder = Path(
+        prediction_data_dir,
+        "1_MV_training_data",
+        site,
     )
 
+    if append_vis:
+        return Path(training_data_folder, "vis")
+    return training_data_folder
 
-def get_training_chips_folder(training_site):
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        training_site,
-        "03_training_data",
-        "ortho",
+
+def get_labeled_mesh_filename(site_name, prediction_data_dir, get_vis_filename=False):
+    vis_file_stem = Path(
+        prediction_data_dir,
+        "1_labeled_mesh",
+        f"{site_name}_labeled_mesh",
     )
-
-
-def get_oblique_images_folder(short_model_name):
-    return {
-        "chips": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/ChipsB/ChipsB_80m_2021_complete",
-        "delta": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/DeltaB/DeltaB_80m",
-        "valley": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/ValleyA/ValleyA_90m",
-        "lassic": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/Lassic/Lassic_80m",
-    }[short_model_name]
-
-
-def get_subfolder_by_mission_type(folder, mission_type):
-    subfolders = list(filter(os.path.isdir, list(folder.glob("*"))))
-    if mission_type == "MV-LO":
-        subfolders = list(filter(lambda x: "_120m" not in str(x), subfolders))
-    elif mission_type == "MV-HN":
-        subfolders = list(filter(lambda x: "_120m" in str(x), subfolders))
+    if get_vis_filename:
+        return vis_file_stem.with_suffix(".png")
     else:
-        raise ValueError(f"Mission type {mission_type} not valid")
-
-    if len(subfolders) != 1:
-        raise ValueError("Subfolders")
-
-    return subfolders[0]
+        return vis_file_stem.with_suffix(".ply")
 
 
-def get_render_folder(site_name, mission_type=None):
-    render_folder = Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "03_training_data",
-        "MV",
-        "rendered_labels",
-    )
-    if mission_type is None:
-        return render_folder
-    else:
-        return get_subfolder_by_mission_type(render_folder, mission_type=mission_type)
-
-
-def get_subset_images_folder(site_name, mission_type=None):
-    subset_images_folder = Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "03_training_data",
-        "MV",
-        "images",
-    )
-    if mission_type is None:
-        return subset_images_folder
-    else:
-        return get_subfolder_by_mission_type(
-            subset_images_folder, mission_type=mission_type
-        )
-
-
-def get_mesh_vis_file(site_name):
-    return Path(VIS_ROOT, site_name, "mesh_vis.png").resolve()
-
-
-def get_labels_vis_folder(site_name, mission_type):
-    return Path(
-        VIS_ROOT,
-        site_name,
-        "rendered_labels_vis",
-        mission_type,
-    )
-
-
+# Step 2 functions
 def get_training_sites_str(training_sites):
     return "_".join(training_sites)
 
 
-def get_formatted_training_data_folder(training_sites, mission_type):
+def get_training_data_folder(prediction_data_dir, training_sites, mission_type):
+    """Folder where model inputs and results go"""
     training_sites_str = get_training_sites_str(training_sites)
     return Path(
-        DATA_ROOT,
-        "models",
-        "multi_site",
-        mission_type + "_" + training_sites_str,
-        "formatted_training_data",
+        prediction_data_dir,
+        "2_training_data",
+        f"{mission_type}_{training_sites_str}",
     )
 
 
-def get_aggregated_labels_folder(training_sites, mission_type):
-    training_data_folder = get_formatted_training_data_folder(
-        training_sites,
+def get_aggregated_labels_folder(prediction_data_dir, training_sites, mission_type):
+    training_data_folder = get_training_data_folder(
+        prediction_data_dir=prediction_data_dir,
+        training_sites=training_sites,
         mission_type=mission_type,
     )
     return Path(training_data_folder, "labels")
 
 
-def get_aggregated_images_folder(training_sites, mission_type):
-    training_data_folder = get_formatted_training_data_folder(
-        training_sites, mission_type=mission_type
+def get_aggregated_images_folder(prediction_data_dir, training_sites, mission_type):
+    training_data_folder = get_training_data_folder(
+        prediction_data_dir=prediction_data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
     )
     return Path(training_data_folder, "images")
 
 
-def get_work_dir(training_sites, mission_type, run_ID="00"):
-    training_data_folder = get_formatted_training_data_folder(
-        training_sites, mission_type=mission_type
-    ).parent
-    return Path(training_data_folder, f"work_dir_{run_ID}")
-
-
-def get_mmseg_style_training_folder(training_sites, mission_type):
-    training_data_folder = get_formatted_training_data_folder(
-        training_sites, mission_type=mission_type
+def get_work_dir(prediction_data_dir, training_sites, mission_type, run_ID):
+    """
+    Where to train the model
+    """
+    training_data_folder = get_training_data_folder(
+        prediction_data_dir=prediction_data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
     )
-    named_folder = training_data_folder.parts[-2]
-    return Path(training_data_folder, f"{named_folder}_mmseg_style")
+    return Path(training_data_folder, "work_dir", run_ID)
 
 
-def get_inference_image_folder(site_name):
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        site_name,
-        "03_training_data",
-        "images_near_labels",
+def get_mmseg_style_training_folder(prediction_data_dir, training_sites, mission_type):
+    training_data_folder = get_training_data_folder(
+        prediction_data_dir=prediction_data_dir,
+        training_sites=training_sites,
+        mission_type=mission_type,
     )
+    # Get the description (mission_<site names>) tag so the associated config will be named appropriately
+    description = training_data_folder.parts[-1]
+    return Path(training_data_folder, f"{description}_mmseg_formatted_data")
 
 
-def get_prediction_folder(prediction_site, training_sites, mission_type, run_ID):
+# Step 3 functions
+def get_prediction_folder(
+    prediction_site, training_sites, mission_type, run_ID, prediction_data_dir
+):
     training_sites_str = get_training_sites_str(training_sites=training_sites)
     return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        prediction_site,
-        "04_model_predictions",
+        prediction_data_dir,
+        "3_model_predictions",
         f"{training_sites_str}_{mission_type}_model",
         f"run_{run_ID}",
+        prediction_site,
     )
 
 
-def get_predicted_output_base_file(prediction_site, training_sites):
+def get_ortho_prediction_data_folder(site, prediction_data_dir, append_vis=False):
+    training_data_folder = Path(
+        prediction_data_dir,
+        "3_ortho_prediction_data",
+        site,
+    )
+
+    if append_vis:
+        return Path(training_data_folder, "vis")
+    return training_data_folder
+
+
+def get_MV_images_subset_folder(site, prediction_data_dir, mission_type=None):
+    MV_subset_folder = Path(
+        prediction_data_dir,
+        "3_MV_images_subset",
+        site,
+    )
+    if mission_type is None:
+        return MV_subset_folder
+
+    subfolder = get_subfolder_by_mission_type(mission_type=mission_type)
+    return Path(MV_subset_folder, subfolder)
+
+
+# Step 4 functions
+def get_predicted_output_base_file(
+    prediction_site, training_sites, prediction_data_dir
+):
     training_sites_str = get_training_sites_str(training_sites)
     return Path(
-        DATA_ROOT,
-        "per_site_processing",
+        prediction_data_dir,
+        "4_aggregated_predictions",
         prediction_site,
-        "05_processed_predictions",
         f"{training_sites_str}_model",
     )
 
 
 def get_aggregated_face_values_file(
-    prediction_site, training_sites, mission_type, run_ID
+    prediction_site, training_sites, mission_type, run_ID, prediction_data_dir
 ):
     predicted_output_base_file = get_predicted_output_base_file(
-        prediction_site, training_sites
+        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
     )
 
     return Path(
@@ -320,10 +337,10 @@ def get_aggregated_face_values_file(
 
 
 def get_predicted_labeled_polygons_file(
-    prediction_site, training_sites, mission_type, run_ID
+    prediction_site, training_sites, mission_type, run_ID, prediction_data_dir
 ):
     predicted_output_base_file = get_predicted_output_base_file(
-        prediction_site, training_sites
+        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
     )
 
     return Path(
@@ -334,11 +351,44 @@ def get_predicted_labeled_polygons_file(
     )
 
 
-def get_figure_export_confusion_matrix_file(
-    prediction_site, training_sites, mission_type, run_ID
+def get_aggregated_raster_pred_file(
+    training_sites, inference_site, run_ID, prediction_data_dir
 ):
-    predicted_output_base_file = get_predicted_output_base_file(
-        prediction_site, training_sites
+    training_sites_str = get_training_sites_str(training_sites=training_sites)
+    return Path(
+        prediction_data_dir,
+        "4_ortho_raster_predictions",
+        f"{training_sites_str}_model_ortho_aggregated_raster",
+        inference_site,
+        f"run_{run_ID}.tif",
+    )
+
+
+def get_unlabeled_crowns_file(site, input_data_dir):
+    return Path(input_data_dir, "predicted-treecrowns", f"{site}.gpkg")
+
+
+# Step 5 functions
+def get_accuracy_output_base_file(
+    prediction_site, training_sites, prediction_data_dir
+):
+    training_sites_str = get_training_sites_str(training_sites)
+    return Path(
+        prediction_data_dir,
+        "5_prediction_accuracy",
+        prediction_site,
+        f"{training_sites_str}_model",
+    )
+
+def get_figure_export_confusion_matrix_file(
+    prediction_site,
+    training_sites,
+    mission_type,
+    run_ID,
+    prediction_data_dir,
+):
+    predicted_output_base_file = get_accuracy_output_base_file(
+        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
     )
 
     return Path(
@@ -350,10 +400,14 @@ def get_figure_export_confusion_matrix_file(
 
 
 def get_npy_export_confusion_matrix_file(
-    prediction_site, training_sites, mission_type, run_ID
+    prediction_site,
+    training_sites,
+    mission_type,
+    run_ID,
+    prediction_data_dir,
 ):
-    predicted_output_base_file = get_predicted_output_base_file(
-        prediction_site, training_sites
+    predicted_output_base_file = get_accuracy_output_base_file(
+        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
     )
 
     return Path(
@@ -361,6 +415,37 @@ def get_npy_export_confusion_matrix_file(
         mission_type,
         "cf_matrix",
         f"run_{run_ID}.npy",
+    )
+
+
+# old functions
+
+
+def get_oblique_images_folder(short_model_name):
+    return {
+        "chips": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/ChipsB/ChipsB_80m_2021_complete",
+        "delta": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/DeltaB/DeltaB_80m",
+        "valley": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/ValleyA/ValleyA_90m",
+        "lassic": "/ofo-share/str-disp_drone-data-partial/str-disp_drone-data_imagery-missions/Lassic/Lassic_80m",
+    }[short_model_name]
+
+
+def get_labels_vis_folder(site_name, mission_type):
+    return Path(
+        VIS_ROOT,
+        site_name,
+        "rendered_labels_vis",
+        mission_type,
+    )
+
+
+def get_inference_image_folder(site_name):
+    return Path(
+        DATA_ROOT,
+        "per_site_processing",
+        site_name,
+        "03_training_data",
+        "images_near_labels",
     )
 
 
@@ -374,28 +459,6 @@ def get_numpy_export_faces_texture_filename(prediction_site, training_sites):
     return get_predicted_output_base_file(
         prediction_site=prediction_site, training_sites=training_sites
     ).with_suffix(".npy")
-
-
-def get_aggregated_raster_pred_file(training_sites, inference_site, run_ID):
-    training_sites_str = get_training_sites_str(training_sites=training_sites)
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        inference_site,
-        "05_processed_predictions",
-        f"{training_sites_str}_model_ortho_aggregated_raster",
-        f"run_{run_ID}.tif",
-    )
-
-
-def get_training_raster_filename(training_site):
-    return Path(
-        DATA_ROOT,
-        "per_site_processing",
-        training_site,
-        "02_photogrammetry",
-        f"{training_site}_ortho.tif",
-    )
 
 
 def get_inference_raster_filename(inference_site):

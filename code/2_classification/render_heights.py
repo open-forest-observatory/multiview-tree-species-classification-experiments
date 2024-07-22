@@ -1,9 +1,5 @@
 from pathlib import Path
 
-from geograypher.cameras import MetashapeCameraSet
-from geograypher.meshes import TexturedPhotogrammetryMesh
-from geograypher.utils.visualization import show_segmentation_labels
-
 from constants import (
     ALL_SITE_NAMES,
     GROUND_HEIGHT_THRESHOLD,
@@ -21,6 +17,9 @@ from constants import (
     get_render_folder,
     get_subset_images_folder,
 )
+from geograypher.cameras import MetashapeCameraSet
+from geograypher.meshes import TexturedPhotogrammetryMesh
+from geograypher.utils.visualization import show_segmentation_labels
 
 IDs_to_labels = get_IDs_to_labels()
 

@@ -62,6 +62,7 @@ def main(
         run_ID=run_ID,
         prediction_data_dir=prediction_data_dir,
     )
+
     # Get the appropriate polygons to label
     if full_site_prediction:
         unlabeled_polygons_file = get_unlabeled_crowns_file(
@@ -140,7 +141,7 @@ def parse_args():
         help="Run the step to aggregate individual chipped predictions to a single raster",
     )
     parser.add_argument(
-        "--label_polygons",
+        "--label-polygons",
         action="store_true",
         help="Run the step to label polygons from the aggregated raster.",
     )

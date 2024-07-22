@@ -19,7 +19,6 @@ from constants import (
     INFERENCE_STRIDE,
     MMSEG_PYTHON,
     get_cameras_filename,
-    get_unlabeled_crowns_file,
     get_IDs_to_labels,
     get_image_folder,
     get_labels_filename,
@@ -28,6 +27,7 @@ from constants import (
     get_ortho_prediction_data_folder,
     get_prediction_folder,
     get_subfolder_by_mission_type,
+    get_unlabeled_crowns_file,
     get_work_dir,
 )
 
@@ -113,10 +113,7 @@ def predict_model(
         )
 
         # Append the mission subfolder
-        input_images = Path(
-            subset_folder,
-            mission_folder
-        )
+        input_images = Path(subset_folder, mission_folder)
 
     # Get folder to write predictions to
     prediction_folder = get_prediction_folder(

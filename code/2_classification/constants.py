@@ -315,47 +315,9 @@ def get_predicted_output_base_file(
     training_sites_str = get_training_sites_str(training_sites)
     return Path(
         prediction_data_dir,
-        "4_accuracy_evaluation",
-        f"{training_sites_str}_model",
+        "4_aggregated_predictions",
         prediction_site,
-    )
-
-
-def get_figure_export_confusion_matrix_file(
-    prediction_site,
-    training_sites,
-    mission_type,
-    run_ID,
-    prediction_data_dir,
-):
-    predicted_output_base_file = get_predicted_output_base_file(
-        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
-    )
-
-    return Path(
-        predicted_output_base_file,
-        mission_type,
-        "cf_matrix",
-        f"run_{run_ID}.svg",
-    )
-
-
-def get_npy_export_confusion_matrix_file(
-    prediction_site,
-    training_sites,
-    mission_type,
-    run_ID,
-    prediction_data_dir,
-):
-    predicted_output_base_file = get_predicted_output_base_file(
-        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
-    )
-
-    return Path(
-        predicted_output_base_file,
-        mission_type,
-        "cf_matrix",
-        f"run_{run_ID}.npy",
+        f"{training_sites_str}_model",
     )
 
 
@@ -407,6 +369,56 @@ def get_unlabeled_crowns_file(site, input_data_dir):
 
 
 # Step 5 functions
+def get_accuracy_output_base_file(
+    prediction_site, training_sites, prediction_data_dir
+):
+    training_sites_str = get_training_sites_str(training_sites)
+    return Path(
+        prediction_data_dir,
+        "5_prediction_accuracy",
+        prediction_site,
+        f"{training_sites_str}_model",
+    )
+
+def get_figure_export_confusion_matrix_file(
+    prediction_site,
+    training_sites,
+    mission_type,
+    run_ID,
+    prediction_data_dir,
+):
+    predicted_output_base_file = get_accuracy_output_base_file(
+        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
+    )
+
+    return Path(
+        predicted_output_base_file,
+        mission_type,
+        "cf_matrix",
+        f"run_{run_ID}.svg",
+    )
+
+
+def get_npy_export_confusion_matrix_file(
+    prediction_site,
+    training_sites,
+    mission_type,
+    run_ID,
+    prediction_data_dir,
+):
+    predicted_output_base_file = get_accuracy_output_base_file(
+        prediction_site, training_sites, prediction_data_dir=prediction_data_dir
+    )
+
+    return Path(
+        predicted_output_base_file,
+        mission_type,
+        "cf_matrix",
+        f"run_{run_ID}.npy",
+    )
+
+
+# old functions
 
 
 def get_oblique_images_folder(short_model_name):

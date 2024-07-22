@@ -2,10 +2,7 @@ import argparse
 import sys
 from pathlib import Path
 
-import geopandas as gpd
-from geograypher.constants import PRED_CLASS_ID_KEY
 from geograypher.entrypoints import aggregate_images, label_polygons
-from geograypher.utils.prediction_metrics import compute_and_show_cf
 
 constants_dir = str(Path(Path(__file__).parent, "..").resolve())
 sys.path.append(constants_dir)
@@ -14,21 +11,17 @@ from constants import (
     ALL_SITE_NAMES,
     DEFAULT_INPUT_DATA_DIR,
     DEFAULT_PREDICTION_DATA_DIR,
-    LABELS_COLUMN,
     N_AGGREGATION_CLUSTERS,
     get_aggregated_face_values_file,
     get_cameras_filename,
     get_DTM_filename,
-    get_figure_export_confusion_matrix_file,
     get_IDs_to_labels,
     get_image_folder,
     get_labels_filename,
     get_mesh_filename,
     get_mesh_transform_filename,
-    get_npy_export_confusion_matrix_file,
     get_predicted_labeled_polygons_file,
     get_prediction_folder,
-    get_subfolder_by_mission_type,
     get_unlabeled_crowns_file,
 )
 
@@ -41,7 +34,6 @@ def main(
     prediction_data_dir,
     aggregate,
     classify_polygons,
-    compute_accuracy,
     vis,
 ):
     # Get IDs to labels mapping
@@ -105,20 +97,6 @@ def main(
         run_ID=run_ID,
         prediction_data_dir=prediction_data_dir,
     )
-    figure_export_confusion_matrix_file = get_figure_export_confusion_matrix_file(
-        site_name,
-        training_sites=training_sites,
-        mission_type=mission_type,
-        run_ID=run_ID,
-        prediction_data_dir=prediction_data_dir,
-    )
-    npy_export_confusion_matrix_file = get_npy_export_confusion_matrix_file(
-        site_name,
-        training_sites=training_sites,
-        mission_type=mission_type,
-        run_ID=run_ID,
-        prediction_data_dir=prediction_data_dir,
-    )
 
     if aggregate:
         # Aggregate predictions onto the mesh and save out the per-face result
@@ -152,34 +130,12 @@ def main(
             vis_mesh=vis,
         )
 
-    if compute_accuracy:
-        # Compute the accuracy of the predictions version ground truth
-        pred_polygons = gpd.read_file(predicted_labeled_polygons_file)
-
-        if not fullsite_pred:
-            # Filter out any predictions from other sites
-            pred_polygons = pred_polygons.query("fire==@site_name")
-
-        # Get the predicted labels per polygon
-        pred_labels = pred_polygons[PRED_CLASS_ID_KEY].tolist()
-        # Get the groundtruth lables per polygon
-        gt_labels = pred_polygons[LABELS_COLUMN].tolist()
-        # Compute a confusion matrix
-        compute_and_show_cf(
-            pred_labels=pred_labels,
-            gt_labels=gt_labels,
-            labels=list(IDs_to_labels.values()),
-            cf_plot_savefile=figure_export_confusion_matrix_file,
-            cf_np_savefile=npy_export_confusion_matrix_file,
-        )
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--fullsite-pred", action="store_true")
     parser.add_argument("--aggregate", action="store_true")
     parser.add_argument("--classify-polygons", action="store_true")
-    parser.add_argument("--compute-accuracy", action="store_true")
     parser.add_argument("--vis", action="store_true")
     parser.add_argument("--site-names", nargs="+", default=ALL_SITE_NAMES)
     parser.add_argument("--run-IDs", nargs="+", default=("00",))
@@ -216,6 +172,5 @@ if __name__ == "__main__":
                     prediction_data_dir=args.prediction_data_dir,
                     aggregate=args.aggregate,
                     classify_polygons=args.classify_polygons,
-                    compute_accuracy=args.compute_accuracy,
                     vis=args.vis,
                 )

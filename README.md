@@ -1,7 +1,7 @@
 # Multiview species classification experiments
 This repo contains the code to run the experiments reported in "Classifying geospatial objects from multiview aerial imagery using semantic meshes", available on [ArXiv](https://arxiv.org/abs/2405.09544).
 
-# Instalation
+# Installation
 This repository primarily contains scripts to run experiments and does not implement the core functionality. Instead, several independent repositories need to be installed. 
 
 ### [Geograypher](https://github.com/open-forest-observatory/geograypher)

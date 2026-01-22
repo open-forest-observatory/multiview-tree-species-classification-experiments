@@ -144,13 +144,8 @@ def parse_args():
     parser.add_argument(
         "--training-site-sets",
         nargs="+",
-        default=[
-            ["chips", "delta", "lassic", "valley"],
-            # ["chips", "delta", "lassic"],
-            # ["chips", "delta", "valley"],
-            # ["chips", "lassic", "valley"],
-            # ["delta", "lassic", "valley"],
-        ],
+        action='append',
+        default=None,
         type=str,
         help="Train one model for each set of training sites in the list",
     )
@@ -161,6 +156,15 @@ def parse_args():
     )
 
     args = parser.parse_args()
+
+    if args.training_site_sets == None:
+        args.training_site_sets=[
+            ["chips", "delta", "lassic", "valley"],
+            # ["chips", "delta", "lassic"],
+            # ["chips", "delta", "valley"],
+            # ["chips", "lassic", "valley"],
+            # ["delta", "lassic", "valley"],
+        ]
 
     return args
 
